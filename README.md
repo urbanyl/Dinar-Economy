@@ -1,6 +1,6 @@
 # Dinar Economy
 
-Mod d'économie complet pour **Minecraft 1.21.1 (Fabric)**.
+Mod d'économie et de caliphat pour **Minecraft 1.21.1 (Fabric)**.
 
 La monnaie du serveur est le **Dinar (D)**.
 
@@ -8,113 +8,111 @@ La monnaie du serveur est le **Dinar (D)**.
 
 1. Installez **Fabric Loader** pour Minecraft 1.21.1.
 2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.0.0.jar` dans le dossier `mods/`.
-3. (Optionnel) **Text Placeholder API** de Patbox + **TAB** (version Fabric) pour utiliser les placeholders.
+3. (Optionnel) **Text Placeholder API** de Patbox + **TAB** pour les placeholders.
 
 ## Commandes joueurs
+
+### Économie
 
 | Commande | Description |
 | --- | --- |
 | `/bal` ou `/balance` ou `/money` | Votre solde |
 | `/bal <joueur>` | Solde d'un autre joueur |
-| `/pay <joueur> <montant> [raison]` ou `/send` | Envoyer de l'argent (taxe éventuelle déduite) |
-| `/dmd <joueur> <montant> [message]` | Demander de l'argent à un joueur |
-| `/dmd accept <id>` | Accepter une demande reçue |
+| `/pay <joueur> <montant> [raison]` | Envoyer de l'argent |
+| `/dmd <joueur> <montant> [message]` | Demander de l'argent |
+| `/dmd accept <id>` | Accepter une demande |
 | `/dmd deny <id>` | Refuser une demande |
-| `/dmd` ou `/dmd list` | Lister vos demandes en attente |
-| `/baltop [page]` | Classement des comptes les plus riches |
+| `/dmd` ou `/dmd list` | Lister vos demandes |
+| `/baltop [page]` | Classement des plus riches |
 
-## Commandes admin (OP / permission niveau 2)
+### Caliphat (gouvernement)
 
-### Économie — `/eco`
-- `/eco give <joueur> <montant>`
-- `/eco take <joueur> <montant>`
-- `/eco set <joueur> <montant>`
-- `/eco reset <joueur>`
-- `/eco resetall`
-- `/eco panel` — **panel graphique** (ajouter / retirer / taxe / salaire)
-- `/eco treasury` — trésorerie
-- `/eco treasury add|take <montant>`
-- `/eco history <joueur>` — historique des transactions
-- `/eco reload` — recharger la config
-- `/eco save` — forcer la sauvegarde
+| Commande | Description |
+| --- | --- |
+| `/caliphat info` | Info sur le calife en cours |
+| `/loi liste` | Voir toutes les lois |
+| `/loi livre` | Ouvrir le livre des lois adoptées (GUI) |
+| `/loi voter` | Voter sur une loi en cours (GUI) |
+| `/loi voter <id> <0\|1>` | Voter (0=NON, 1=OUI) |
+| `/loi info <id>` | Détails d'une loi |
+| `/loi decret` | Voir le décret en cours |
+| `/loi calife` | Info du calife |
+| `/dinar help` | Panel d'aide avec toutes les commandes |
 
-### Salaires — `/salary`
-- `/salary set <joueur> <montant> [intervalle_secondes]` — salaire périodique (défaut : 3600s)
-- `/salary remove <joueur>`
-- `/salary list`
-- `/salary payall` — payer tout de suite tous les salaires
-- `/salary info <joueur>`
+### Commandes admin (OP / permission 2)
 
-### Taxes — `/tax`
-- `/tax global <pourcent>` — taxe sur toutes les transactions (prélevée sur le destinataire, versée à la trésorerie)
-- `/tax salary <pourcent>` — taxe sur les salaires
-- `/tax set <joueur> <pourcent>` — taxe personnelle d'un joueur (remplace la taxe globale pour lui)
-- `/tax remove <joueur>`
-- `/tax list`
-- `/tax info <joueur>`
+#### Économie — `/eco`
 
-### Divers
-- `/dinar scoreboard on|off|status` — affiche les soldes dans le scoreboard latéral
-- `/dinar about`
+- `/eco give|take|set|reset <joueur> <montant>`
+- `/eco resetall` — Réinitialiser tous les comptes
+- `/eco panel` — Panel graphique admin
+- `/eco treasury [add|take <montant>]`
+- `/eco history <joueur>` — Historique
+- `/eco reload|save`
 
-## Placeholders pour TAB
+#### Caliphat — `/caliphat`
 
-Installez **Text Placeholder API** et **TAB**, puis utilisez :
+- `/caliphat set <joueur>` — Nommer un calife
+- `/caliphat remove` — Retirer le calife
+- `/caliphat loi proposer <titre> <contenu>` — Proposer une loi (vote)
+- `/caliphat loi promulguer <titre> <contenu>` — Promulguer directement
+- `/caliphat loi voter <id>` — Ouvrir un vote
+- `/caliphat loi liste` — Toutes les lois
+- `/caliphat loi info <id>` — Détails d'une loi
+- `/caliphat decret <texte>` — Publier un décret
+- `/caliphat config titre on|off` — Titres à l'écran (adopté/rejeté)
+- `/caliphat config duree_vote <sec>` — Durée du vote (défaut: 300s)
+- `/caliphat config votes_requis <n>` — Votes nécessaires (défaut: 3)
 
-- `%dinar:balance%` — solde formaté (ex : `12,5K D`)
-- `%dinar:balance_raw%` — solde brut (`12345.67`)
-- `%dinar:balance_int%` — solde entier
-- `%dinar:rank%` — position au classement
-- `%dinar:treasury%` — trésorerie du serveur
-- `%dinar:currency%` — symbole monétaire (`D`)
-- `%dinar:currency_name%` — nom de la monnaie (`Dinar`)
+#### Salaires — `/salary`
 
-Exemple dans `config/tab/tabConfig.yml` :
-```yaml
-tablist-name-formatting:
-  - "%dinar:balance%"
-```
+- `/salary set <joueur> <montant> [intervalle_secondes]`
+- `/salary remove|list|payall|info <joueur>`
+
+#### Taxes — `/tax`
+
+- `/tax global|salary <pourcent>`
+- `/tax set <joueur> <pourcent>` — Taxe personnelle
+- `/tax remove|list|info <joueur>`
 
 ## Scoreboard
 
-Le scoreboard latéral affiche le solde de chaque joueur, mis à jour automatiquement.
-Activez-le avec `/dinar scoreboard on` (ou dans la config).
-
-## Config
-
-Fichier `config/dinar.json` :
+Le scoreboard latéral affiche le solde de chaque joueur.
+Customisable dans `config/dinar.json` :
 
 ```json
-{
-  "currencyName": "Dinar",
-  "currencySymbol": "D",
-  "startingBalance": 0,
-  "globalTransactionTax": 0.0,
-  "salaryTax": 0.0,
-  "salaryCheckIntervalTicks": 100,
-  "requestExpirySeconds": 120,
-  "allowNegative": false,
-  "suffixFormat": true,
-  "autoSaveIntervalTicks": 6000,
-  "historySize": 20,
-  "scoreboard": {
-    "enabled": false,
-    "updateIntervalTicks": 40,
-    "title": "Dinar"
-  }
+"scoreboard": {
+  "enabled": false,
+  "title": "Dinar",
+  "showRank": true,
+  "showTreasury": true,
+  "showLaws": true
 }
 ```
 
+## Placeholders
+
+- `%dinar:balance%` — Solde formaté
+- `%dinar:balance_raw%` — Solde brut
+- `%dinar:rank%` — Rang au classement
+- `%dinar:treasury%` — Trésorerie
+- `%dinar:leader%` — Nom du calife
+- `%dinar:laws%` — Nombre de lois adoptées
+- `%dinar:decree%` — Décret en cours
+- `%dinar:is_leader%` — true/false si le joueur est calife
+- `%dinar:currency%` — Symbole monétaire
+- `%dinar:currency_name%` — Nom de la monnaie
+
 ## Données
 
-Les comptes, salaires, taxes et la trésorerie sont sauvegardés dans le dossier du monde : `world/dinar/data.json` (sauvegarde automatique toutes les 5 minutes et à l'arrêt du serveur).
+- Économie : `world/dinar/data.json`
+- Gouvernement : `world/dinar/government.json`
+- Sauvegarde automatique toutes les 5 minutes.
 
 ## Compilation
 
-```
+```bash
 gradlew build
 ```
-
-Le mod se trouve dans `build/libs/dinar-1.0.0.jar`.
 
 **Prérequis : JDK 21.**
