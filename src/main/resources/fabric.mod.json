@@ -13,6 +13,9 @@
   "entrypoints": {
     "main": [
       "fr.dinar.DinarMod"
+    ],
+    "client": [
+      "fr.dinar.client.DinarClient"
     ]
   },
   "depends": {
