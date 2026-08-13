@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "dinar",
+  "version": "${version}",
+  "name": "Dinar",
+  "description": "Mod d'économie complet pour Minecraft : balances, salaires, taxes, demandes d'argent, panel admin et placeholders.",
+  "authors": [
+    "Dinar"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "fr.dinar.DinarMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "placeholder-api": "*"
+  }
+}

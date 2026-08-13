@@ -1,0 +1,24 @@
+package fr.dinar.command;
+
+import com.mojang.brigadier.CommandDispatcher;
+import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.server.command.CommandManager;
+import net.minecraft.server.command.ServerCommandSource;
+
+public final class ModCommands {
+
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                                CommandRegistryAccess registryAccess,
+                                CommandManager.RegistrationEnvironment environment) {
+        BalanceCommand.register(dispatcher);
+        PayCommand.register(dispatcher);
+        RequestCommand.register(dispatcher);
+        BaltopCommand.register(dispatcher);
+        EcoCommand.register(dispatcher);
+        SalaryCommand.register(dispatcher);
+        TaxCommand.register(dispatcher);
+        DinarCommand.register(dispatcher);
+    }
+
+    private ModCommands() {}
+}
