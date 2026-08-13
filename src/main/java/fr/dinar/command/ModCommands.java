@@ -22,6 +22,11 @@ public final class ModCommands {
         LoiCommand.register(dispatcher);
         BankCommand.register(dispatcher);
         LoanCommand.register(dispatcher);
+        ShopCommand.register(dispatcher);
+        CompanyCommand.register(dispatcher);
+        AuctionCommand.register(dispatcher);
+        ContractCommand.register(dispatcher);
+        AmendeCommand.register(dispatcher);
     }
 
     private ModCommands() {}

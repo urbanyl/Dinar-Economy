@@ -2,7 +2,11 @@ package fr.dinar;
 
 import fr.dinar.command.ModCommands;
 import fr.dinar.config.DinarConfig;
+import fr.dinar.economy.AuctionManager;
+import fr.dinar.economy.CompanyManager;
+import fr.dinar.economy.ContractManager;
 import fr.dinar.economy.EconomyManager;
+import fr.dinar.economy.ShopManager;
 import fr.dinar.government.GovernmentManager;
 import fr.dinar.placeholder.DinarPlaceholders;
 import net.fabricmc.api.ModInitializer;
@@ -22,20 +26,40 @@ public class DinarMod implements ModInitializer {
     public static DinarConfig config;
     public static EconomyManager economy;
     public static GovernmentManager government;
+    public static ShopManager shops;
+    public static CompanyManager companies;
+    public static AuctionManager auctions;
+    public static ContractManager contracts;
 
     @Override
     public void onInitialize() {
         config = DinarConfig.load();
         economy = new EconomyManager();
         government = new GovernmentManager();
+        shops = new ShopManager();
+        companies = new CompanyManager();
+        auctions = new AuctionManager();
+        contracts = new ContractManager();
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             economy.onServerStart(server);
             government.onServerStart(server);
+            shops.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
+            companies.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
+            auctions.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
+            contracts.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
+            LOGGER.info("[Dinar] Shops: {}, Entreprises: {}, Ventes: {}, Contrats: {}",
+                    shops.getAll().size(), companies.getAll().size(),
+                    auctions.getAll().size(), contracts.getAll().size());
         });
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             economy.onServerStop(server);
             government.onServerStop();
+            var dataDir = server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar");
+            shops.save(dataDir);
+            companies.save(dataDir);
+            auctions.save(dataDir);
+            contracts.save(dataDir);
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> economy.onPlayerJoin(handler.getPlayer()));

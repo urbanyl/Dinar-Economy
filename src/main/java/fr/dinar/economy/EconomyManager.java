@@ -46,6 +46,7 @@ public class EconomyManager {
     private long lastAutoSaveTick = 0;
     private long lastSalaryTick = 0;
     private long lastScoreboardTick = 0;
+    private long lastBankInterestTick = 0;
 
     // ------------------------------------------------------------------
     // Cycle de vie
@@ -86,6 +87,10 @@ public class EconomyManager {
         if (t - lastSalaryTick >= cfg.salaryCheckIntervalTicks) {
             lastSalaryTick = t;
             checkSalaries();
+        }
+        if (t - lastBankInterestTick >= cfg.bankInterestIntervalTicks) {
+            lastBankInterestTick = t;
+            applyBankInterests();
         }
         if (t - lastAutoSaveTick >= cfg.autoSaveIntervalTicks) {
             lastAutoSaveTick = t;
@@ -149,6 +154,19 @@ public class EconomyManager {
 
     public double round(double v) {
         return Math.round(v * 100.0) / 100.0;
+    }
+
+    public boolean deductFromBalance(UUID uuid, String name, double amount) {
+        Account a = getOrCreate(uuid, name);
+        if (!DinarMod.config.allowNegative && a.balance < amount) return false;
+        a.balance = round(a.balance - amount);
+        return true;
+    }
+
+    public void logTransaction(UUID uuid, String type, double amount, String other, String reason) {
+        Account a = accounts.get(uuid);
+        if (a == null) return;
+        log(a, type, amount, other, reason);
     }
 
     // ------------------------------------------------------------------
@@ -467,6 +485,23 @@ public class EconomyManager {
 
     public Map<UUID, Double> getBankBalances() {
         return bankBalances;
+    }
+
+    public void applyBankInterests() {
+        double rate = DinarMod.config.bankInterestRate;
+        if (rate <= 0) return;
+        for (Map.Entry<UUID, Double> e : bankBalances.entrySet()) {
+            double interest = round(e.getValue() * rate);
+            if (interest > 0) {
+                e.setValue(round(e.getValue() + interest));
+                ServerPlayerEntity p = online(e.getKey());
+                if (p != null) {
+                    double bal = e.getValue();
+                    p.sendMessage(Text.literal("§a[Banque] §fIntérêts : §e+"
+                            + money(interest) + " §7(solde bancaire : §e" + money(bal) + "§7)"), false);
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------

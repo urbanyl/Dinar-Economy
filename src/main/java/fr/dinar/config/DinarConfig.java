@@ -17,6 +17,8 @@ public class DinarConfig {
     public double startingBalance = 0;
     public double globalTransactionTax = 0.0;
     public double salaryTax = 0.0;
+    public double bankInterestRate = 0.02;
+    public int bankInterestIntervalTicks = 72000;
     public int salaryCheckIntervalTicks = 100;
     public int requestExpirySeconds = 120;
     public boolean allowNegative = false;

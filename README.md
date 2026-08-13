@@ -7,7 +7,7 @@ La monnaie du serveur est le **Dinar (D)**.
 ## Installation
 
 1. Installez **Fabric Loader** pour Minecraft 1.21.1.
-2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.1.0.jar` dans le dossier `mods/`.
+2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.2.0.jar` dans le dossier `mods/`.
 3. (Optionnel) **Text Placeholder API** de Patbox + **TAB** pour les placeholders.
 
 ## Commandes joueurs
@@ -25,25 +25,71 @@ La monnaie du serveur est le **Dinar (D)**.
 | `/dmd` ou `/dmd list` | Lister vos demandes |
 | `/baltop [page]` | Classement des plus riches |
 
-### Banque
+### Banque & Prêts
 
 | Commande | Description |
 | --- | --- |
-| `/bank balance` | Voir votre solde bancaire |
-| `/bank balance <joueur>` | Solde bancaire d'un autre joueur |
-| `/bank deposit <montant>` | Déposer de l'argent en banque |
-| `/bank withdraw <montant>` | Retirer de l'argent de la banque |
-
-### Prêts
-
-| Commande | Description |
-| --- | --- |
-| `/loan take <montant> <taux> <durée>` | Contracter un prêt (taux en décimal, ex: 0.1 = 10%) |
-| `/loan repay <montant>` | Rembourser tout ou partie de votre prêt |
-| `/loan info` | Voir les détails de votre prêt |
-| `/loan info <joueur>` | Voir le prêt d'un autre joueur |
-| `/loan list` | Lister tous les prêts en cours |
+| `/bank balance` | Votre solde bancaire (avec intérêts) |
+| `/bank balance <joueur>` | Solde bancaire d'un joueur |
+| `/bank deposit <montant>` | Déposer en banque |
+| `/bank withdraw <montant>` | Retirer de la banque |
+| `/loan take <montant> <taux> <durée>` | Contracter un prêt |
+| `/loan repay <montant>` | Rembourser un prêt |
+| `/loan info` | Détails de votre prêt |
+| `/loan list` | Tous les prêts en cours |
 | `/loan help` | Aide sur les prêts |
+
+### Shops de joueurs
+
+| Commande | Description |
+| --- | --- |
+| `/shop create <item> <prix_achat> <prix_vente> <stock_max>` | Créer un shop |
+| `/shop list [page]` | Voir tous les shops |
+| `/shop info <id>` | Détails d'un shop |
+| `/shop buy <id> <quantite>` | Acheter depuis un shop |
+| `/shop sell <id> <quantite>` | Vendre à un shop |
+| `/shop remove <id>` | Supprimer votre shop |
+| `/shop help` | Aide shops |
+
+### Auction House
+
+| Commande | Description |
+| --- | --- |
+| `/ah sell <prix> [quantite]` | Mettre en vente (tenir l'item en main) |
+| `/ah buy <id>` | Acheter une vente |
+| `/ah list [page]` | Voir les ventes |
+| `/ah cancel <id>` | Annuler votre vente |
+| `/ah info <id>` | Détails d'une vente |
+| `/ah help` | Aide auction house |
+
+### Entreprises
+
+| Commande | Description |
+| --- | --- |
+| `/entreprise create <nom>` | Créer une entreprise |
+| `/entreprise info [nom]` | Infos sur une entreprise |
+| `/entreprise list` | Toutes les entreprises |
+| `/entreprise invite <joueur>` | Inviter un membre |
+| `/entreprise kick <joueur>` | Expulser un membre |
+| `/entreprise depot <montant>` | Déposer au trésor |
+| `/entreprise withdraw <montant>` | Retirer du trésor |
+| `/entreprise members [nom]` | Lister les membres |
+| `/entreprise delete <nom>` | Dissoudre l'entreprise |
+| `/entreprise help` | Aide entreprises |
+
+### Contrats
+
+| Commande | Description |
+| --- | --- |
+| `/contract create <joueur> <type> <details> [montant]` | Créer un contrat |
+| `/contract sign <id>` | Signer un contrat |
+| `/contract cancel <id>` | Annuler un contrat |
+| `/contract list` | Vos contrats |
+| `/contract pending` | Contrats en attente |
+| `/contract info <id>` | Détails d'un contrat |
+| `/contract help` | Aide contrats |
+
+Types de contrats : `vente`, `service`, `location`, `pret`
 
 ### Caliphat (gouvernement)
 
@@ -57,6 +103,7 @@ La monnaie du serveur est le **Dinar (D)**.
 | `/loi info <id>` | Détails d'une loi |
 | `/loi decret` | Voir le décret en cours |
 | `/loi calife` | Info du calife |
+| `/amende <joueur> <montant> <raison>` | Infliger une amende (calife/OP) |
 | `/dinar help` | Panel d'aide avec toutes les commandes |
 | `/dinar about` | Informations sur le mod |
 
@@ -96,11 +143,6 @@ La monnaie du serveur est le **Dinar (D)**.
 - `/tax set <joueur> <pourcent>` — Taxe personnelle
 - `/tax remove|list|info <joueur>`
 
-#### Banque & Prêts
-
-- `/bank deposit|withdraw` — Gestion bancaire
-- `/loan take|repay` — Système de prêts
-
 ## Scoreboard
 
 Le scoreboard latéral affiche le solde de chaque joueur.
@@ -130,9 +172,29 @@ Customisable dans `config/dinar.json` :
 - `%dinar:currency%` — Symbole monétaire
 - `%dinar:currency_name%` — Nom de la monnaie
 
+## Configuration
+
+Options dans `config/dinar.json` :
+
+| Option | Défaut | Description |
+| --- | --- | --- |
+| `currencyName` | Dinar | Nom de la monnaie |
+| `currencySymbol` | D | Symbole monétaire |
+| `startingBalance` | 0 | Solde de départ |
+| `globalTransactionTax` | 0 | Taxe sur les transactions |
+| `salaryTax` | 0 | Taxe sur les salaires |
+| `bankInterestRate` | 0.02 | Taux d'intérêt bancaire (2%/cycle) |
+| `bankInterestIntervalTicks` | 72000 | Intervalle des intérêts (1h) |
+| `allowNegative` | false | Autoriser les soldes négatifs |
+| `suffixFormat` | true | Format K/M/B pour les montants |
+
 ## Données
 
-- Économie : `world/dinar/data.json` (inclut banque et prêts)
+- Économie : `world/dinar/data.json` (comptes, banque, prêts)
+- Shops : `world/dinar/shops.json`
+- Entreprises : `world/dinar/companies.json`
+- Auction House : `world/dinar/auctions.json`
+- Contrats : `world/dinar/contracts.json`
 - Gouvernement : `world/dinar/government.json`
 - Sauvegarde automatique toutes les 5 minutes.
 

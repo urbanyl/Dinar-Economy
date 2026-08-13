@@ -42,55 +42,40 @@ public class HelpScreenHandler extends GenericContainerScreenHandler {
     private void build() {
         for (int i = 0; i < 54; i++) panelInv.setStack(i, ItemStack.EMPTY);
 
-        // Row 0: Economy commands
         panelInv.setStack(0, named(Items.BARRIER, "§cFermer"));
+
         panelInv.setStack(4, titled(Items.GOLD_INGOT, "§6§l═══ ÉCONOMIE ═══"));
-
         panelInv.setStack(9, cmd(Items.EMERALD, "/bal", "Voir votre solde"));
-        panelInv.setStack(10, cmd(Items.EMERALD, "/bal <joueur>", "Solde d'un joueur"));
-        panelInv.setStack(11, cmd(Items.EMERALD, "/pay <joueur> <montant>", "Envoyer de l'argent"));
-        panelInv.setStack(12, cmd(Items.EMERALD, "/dmd <joueur> <montant>", "Demander de l'argent"));
-        panelInv.setStack(13, cmd(Items.EMERALD, "/dmd accept|deny <id>", "Traiter une demande"));
-        panelInv.setStack(14, cmd(Items.EMERALD, "/baltop", "Classement des plus riches"));
-        panelInv.setStack(15, cmd(Items.EMERALD, "/dinar scoreboard on|off", "Scoreboard latéral"));
-        panelInv.setStack(16, cmd(Items.EMERALD, "/dinar about", "À propos du mod"));
+        panelInv.setStack(10, cmd(Items.EMERALD, "/pay <joueur> <montant>", "Envoyer de l'argent"));
+        panelInv.setStack(11, cmd(Items.EMERALD, "/dmd <joueur> <montant>", "Demander de l'argent"));
+        panelInv.setStack(12, cmd(Items.EMERALD, "/baltop", "Classement des plus riches"));
 
-        // Row 1: Bank & Loan commands
-        panelInv.setStack(18, titled(Items.GOLD_BLOCK, "§6§l═══ BANQUE & PRÊTS ═══"));
+        panelInv.setStack(13, titled(Items.GOLD_BLOCK, "§6§l═══ BANQUE & PRÊTS ═══"));
+        panelInv.setStack(14, cmd(Items.GOLD_BLOCK, "/bank balance", "Solde bancaire"));
+        panelInv.setStack(15, cmd(Items.GOLD_BLOCK, "/bank deposit|withdraw", "Déposer/Retirer"));
+        panelInv.setStack(16, cmd(Items.GOLD_NUGGET, "/loan take|repay", "Prêts & remboursement"));
 
-        panelInv.setStack(19, cmd(Items.GOLD_BLOCK, "/bank balance", "Solde bancaire"));
-        panelInv.setStack(20, cmd(Items.GOLD_BLOCK, "/bank deposit <montant>", "Déposer en banque"));
-        panelInv.setStack(21, cmd(Items.GOLD_BLOCK, "/bank withdraw <montant>", "Retirer de la banque"));
-        panelInv.setStack(22, cmd(Items.GOLD_NUGGET, "/loan take <montant> <taux> <durée>", "Contracter un prêt"));
-        panelInv.setStack(23, cmd(Items.GOLD_NUGGET, "/loan repay <montant>", "Rembourser un prêt"));
-        panelInv.setStack(24, cmd(Items.GOLD_NUGGET, "/loan info", "Votre prêt"));
+        panelInv.setStack(22, titled(Items.CHEST, "§6§l═══ RP ═══"));
+        panelInv.setStack(27, cmd(Items.EMERALD_BLOCK, "/shop create|buy|sell", "Magasins de joueurs"));
+        panelInv.setStack(28, cmd(Items.EMERALD_BLOCK, "/shop list", "Voir les shops"));
+        panelInv.setStack(29, cmd(Items.GOLD_BLOCK, "/ah sell|buy|list", "Auction House"));
+        panelInv.setStack(30, cmd(Items.NETHER_STAR, "/entreprise create", "Créer une entreprise"));
+        panelInv.setStack(31, cmd(Items.NETHER_STAR, "/entreprise invite|kick", "Gérer les membres"));
+        panelInv.setStack(32, cmd(Items.NETHER_STAR, "/entreprise depot|withdraw", "Trésor d'entreprise"));
+        panelInv.setStack(33, cmd(Items.PAPER, "/contract create|sign", "Contrats entre joueurs"));
 
-        // Row 2: Government commands
-        panelInv.setStack(22, titled(Items.BOOK, "§6§l═══ CALIPHAT ═══"));
+        panelInv.setStack(36, titled(Items.BOOK, "§6§l═══ CALIPHAT ═══"));
+        panelInv.setStack(40, cmd(Items.WRITABLE_BOOK, "/caliphat info", "Info sur le calife"));
+        panelInv.setStack(41, cmd(Items.WRITABLE_BOOK, "/loi liste|livre|voter", "Système de lois"));
+        panelInv.setStack(42, cmd(Items.WRITABLE_BOOK, "/loi decret", "Décret en cours"));
+        panelInv.setStack(43, cmd(Items.WRITABLE_BOOK, "/amende <joueur> <montant>", "Amende (calife)"));
 
-        panelInv.setStack(27, cmd(Items.WRITABLE_BOOK, "/caliphat info", "Info sur le calife"));
-        panelInv.setStack(28, cmd(Items.WRITABLE_BOOK, "/loi liste", "Voir toutes les lois"));
-        panelInv.setStack(29, cmd(Items.WRITABLE_BOOK, "/loi livre", "Livre des lois adoptées"));
-        panelInv.setStack(30, cmd(Items.WRITABLE_BOOK, "/loi voter", "Voter sur une loi"));
-        panelInv.setStack(31, cmd(Items.WRITABLE_BOOK, "/loi decret", "Voir le décret en cours"));
-        panelInv.setStack(32, cmd(Items.WRITABLE_BOOK, "/loi calife", "Info du calife"));
-        panelInv.setStack(33, cmd(Items.WRITABLE_BOOK, "/loi info <id>", "Détails d'une loi"));
-
-        // Row 4: Admin government commands
-        panelInv.setStack(40, titled(Items.NETHERITE_INGOT, "§6§l═══ ADMIN ═══"));
-
-        panelInv.setStack(41, cmd(Items.NETHERITE_INGOT, "/caliphat set <joueur>", "Nommer un calife"));
-        panelInv.setStack(42, cmd(Items.NETHERITE_INGOT, "/caliphat remove", "Retirer le calife"));
-        panelInv.setStack(43, cmd(Items.NETHERITE_INGOT, "/caliphat loi proposer", "Proposer une loi"));
-        panelInv.setStack(44, cmd(Items.NETHERITE_INGOT, "/caliphat loi promulguer", "Promulguer une loi"));
-        panelInv.setStack(45, cmd(Items.NETHERITE_INGOT, "/caliphat loi voter <id>", "Ouvrir un vote"));
-        panelInv.setStack(46, cmd(Items.NETHERITE_INGOT, "/caliphat decret <texte>", "Publier un décret"));
-        panelInv.setStack(47, cmd(Items.NETHERITE_INGOT, "/caliphat config titre", "Titres à l'écran"));
-        panelInv.setStack(48, cmd(Items.NETHERITE_INGOT, "/eco panel", "Panel admin économie"));
-        panelInv.setStack(49, cmd(Items.NETHERITE_INGOT, "/salary set <joueur> <montant>", "Définir un salaire"));
-        panelInv.setStack(50, cmd(Items.NETHERITE_INGOT, "/tax set <joueur> <%>", "Taxe personnelle"));
-        panelInv.setStack(51, cmd(Items.NETHERITE_INGOT, "/bank deposit|withdraw", "Banque"));
-        panelInv.setStack(52, cmd(Items.NETHERITE_INGOT, "/loan take|repay", "Système de prêts"));
+        panelInv.setStack(45, titled(Items.NETHERITE_INGOT, "§6§l═══ ADMIN ═══"));
+        panelInv.setStack(46, cmd(Items.NETHERITE_INGOT, "/eco give|take|set|panel", "Admin économie"));
+        panelInv.setStack(47, cmd(Items.NETHERITE_INGOT, "/salary set|list|payall", "Gestion salaires"));
+        panelInv.setStack(48, cmd(Items.NETHERITE_INGOT, "/tax global|set|list", "Gestion taxes"));
+        panelInv.setStack(49, cmd(Items.NETHERITE_INGOT, "/caliphat set|remove", "Gérer le calife"));
+        panelInv.setStack(50, cmd(Items.NETHERITE_INGOT, "/dinar reload", "Recharger config"));
     }
 
     private static ItemStack named(net.minecraft.item.Item item, String name) {
