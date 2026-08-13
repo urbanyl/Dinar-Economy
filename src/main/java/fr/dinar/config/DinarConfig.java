@@ -29,6 +29,13 @@ public class DinarConfig {
         public boolean enabled = false;
         public int updateIntervalTicks = 40;
         public String title = "Dinar";
+        public boolean showRank = true;
+        public boolean showTreasury = true;
+        public boolean showLaws = true;
+        public String line1 = "§7Solde : §e%balance%";
+        public String line2 = "§7Rang : §e#%rank%";
+        public String line3 = "§7Trésorerie : §e%treasury%";
+        public String line4 = "§7Lois : §e%laws%";
     }
 
     public static DinarConfig load() {

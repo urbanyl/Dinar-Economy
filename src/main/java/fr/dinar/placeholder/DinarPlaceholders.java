@@ -44,6 +44,24 @@ public final class DinarPlaceholders {
 
         Placeholders.register(Identifier.of("dinar", "currency_name"), (ctx, arg) ->
                 PlaceholderResult.value(Text.literal(DinarMod.config.currencyName)));
+
+        Placeholders.register(Identifier.of("dinar", "leader"), (ctx, arg) ->
+                PlaceholderResult.value(Text.literal(DinarMod.government.hasLeader()
+                        ? DinarMod.government.getLeaderName() : "Aucun")));
+
+        Placeholders.register(Identifier.of("dinar", "laws"), (ctx, arg) ->
+                PlaceholderResult.value(Text.literal(String.valueOf(DinarMod.government.getAdoptedLawCount()))));
+
+        Placeholders.register(Identifier.of("dinar", "decree"), (ctx, arg) -> {
+            String d = DinarMod.government.getDecree();
+            return PlaceholderResult.value(Text.literal(d != null && !d.isEmpty() ? d : "Aucun"));
+        });
+
+        Placeholders.register(Identifier.of("dinar", "is_leader"), (ctx, arg) -> {
+            if (!ctx.hasPlayer()) return PlaceholderResult.invalid("No player");
+            return PlaceholderResult.value(Text.literal(
+                    DinarMod.government.isLeader(ctx.player().getUuid()) ? "true" : "false"));
+        });
     }
 
     private DinarPlaceholders() {}

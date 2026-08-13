@@ -18,6 +18,8 @@ public final class ModCommands {
         SalaryCommand.register(dispatcher);
         TaxCommand.register(dispatcher);
         DinarCommand.register(dispatcher);
+        CaliphatCommand.register(dispatcher);
+        LoiCommand.register(dispatcher);
     }
 
     private ModCommands() {}
