@@ -12,6 +12,7 @@ public class VoteSession {
 
     private final Set<UUID> yesVoters = new HashSet<>();
     private final Set<UUID> noVoters = new HashSet<>();
+    private boolean resolved = false;
 
     public VoteSession(int lawId, long startedAt, long durationSeconds, int requiredVotes) {
         this.lawId = lawId;
@@ -46,7 +47,23 @@ public class VoteSession {
         return isExpired() && getYes() <= getNo();
     }
 
+    public boolean isResolved() { return resolved; }
+    public void setResolved(boolean resolved) { this.resolved = resolved; }
+
     public Set<UUID> getYesVoters() { return yesVoters; }
     public Set<UUID> getNoVoters() { return noVoters; }
     public int getRequiredVotes() { return requiredVotes; }
+
+    public String getStatusMessage() {
+        if (isPassed()) {
+            return "§aADOPTÉE §7(" + getYes() + " OUI, " + getNo() + " NON)";
+        } else if (isRejected()) {
+            return "§cREJETÉE §7(" + getYes() + " OUI, " + getNo() + " NON)";
+        } else if (isExpired()) {
+            return "§cEXPIRÉE §7(" + getYes() + " OUI, " + getNo() + " NON)";
+        } else {
+            long remaining = Math.max(0, (expiresAt - System.currentTimeMillis()) / 1000);
+            return "§eEN COURS §7(" + getYes() + " OUI, " + getNo() + " NON - §e" + remaining + "s restantes§7)";
+        }
+    }
 }

@@ -133,8 +133,13 @@ public class GovernmentManager {
 
     public VoteSession getActiveVote(int lawId) {
         VoteSession vs = activeVotes.get(lawId);
-        if (vs != null && vs.isExpired()) {
+        if (vs == null) return null;
+        if (vs.isExpired() && !vs.isResolved()) {
             resolveVote(vs);
+            activeVotes.remove(lawId);
+            return null;
+        }
+        if (vs.isResolved()) {
             activeVotes.remove(lawId);
             return null;
         }
@@ -163,6 +168,8 @@ public class GovernmentManager {
     }
 
     private void resolveVote(VoteSession vs) {
+        if (vs.isResolved()) return;
+        vs.setResolved(true);
         Law law = getLaw(vs.lawId);
         if (law == null) return;
         law.yesVotes = vs.getYes();
@@ -242,8 +249,10 @@ public class GovernmentManager {
         MinecraftServer s = getServer();
         if (s == null) return;
         for (ServerPlayerEntity p : s.getPlayerManager().getPlayerList()) {
+            p.sendMessage(Text.literal(""), false);
             p.sendMessage(Text.literal(title), false);
             p.sendMessage(Text.literal(subtitle), false);
+            p.sendMessage(Text.literal(""), false);
         }
     }
 
@@ -291,8 +300,11 @@ public class GovernmentManager {
     public void tick() {
         List<Integer> expired = new ArrayList<>();
         for (Map.Entry<Integer, VoteSession> e : activeVotes.entrySet()) {
-            if (e.getValue().isExpired()) {
-                resolveVote(e.getValue());
+            VoteSession vs = e.getValue();
+            if (vs.isExpired() && !vs.isResolved()) {
+                resolveVote(vs);
+                expired.add(e.getKey());
+            } else if (vs.isResolved()) {
                 expired.add(e.getKey());
             }
         }

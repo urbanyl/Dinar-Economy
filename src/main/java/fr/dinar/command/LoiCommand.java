@@ -21,8 +21,7 @@ public final class LoiCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("loi")
                 .then(CommandManager.literal("livre").executes(LoiCommand::openBook))
-                .then(CommandManager.literal("voter").executes(LoiCommand::openVote))
-                .then(CommandManager.literal("voter")
+                .then(CommandManager.literal("voter").executes(LoiCommand::openVote)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .then(CommandManager.argument("vote", IntegerArgumentType.integer(0, 1))
                                         .executes(LoiCommand::voteById))))
@@ -58,6 +57,8 @@ public final class LoiCommand {
         }
         Law law = gov.getLaw(vs.lawId);
         if (law == null) return 0;
+        ctx.getSource().sendFeedback(() -> Text.literal("§6§lVote en cours §r§7» §f" + law.title
+                + " §7(#" + law.id + ") §e" + vs.getStatusMessage()), false);
         VoteScreenHandler.open(player, law);
         return 1;
     }

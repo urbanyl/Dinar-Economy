@@ -20,6 +20,8 @@ public final class ModCommands {
         DinarCommand.register(dispatcher);
         CaliphatCommand.register(dispatcher);
         LoiCommand.register(dispatcher);
+        BankCommand.register(dispatcher);
+        LoanCommand.register(dispatcher);
     }
 
     private ModCommands() {}

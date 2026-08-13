@@ -35,7 +35,8 @@ public class Law {
     }
 
     public boolean hasVoted(UUID uuid) {
-        return voters.contains(uuid.toString());
+        String prefix = uuid.toString();
+        return voters.stream().anyMatch(v -> v.startsWith(prefix));
     }
 
     public int totalVotes() {

@@ -33,6 +33,8 @@ public class EconomyManager {
     private final Map<UUID, Account> accounts = new HashMap<>();
     private final Map<UUID, Double> personalTaxes = new HashMap<>();
     private final Map<UUID, SalaryEntry> salaries = new HashMap<>();
+    private final Map<UUID, Double> bankBalances = new HashMap<>();
+    private final Map<UUID, LoanEntry> loans = new HashMap<>();
     private final RequestManager requests = new RequestManager();
     private final BalanceScoreboard scoreboard = new BalanceScoreboard();
 
@@ -430,6 +432,84 @@ public class EconomyManager {
     }
 
     // ------------------------------------------------------------------
+    // Banque
+    // ------------------------------------------------------------------
+
+    public double bankBalance(UUID uuid) {
+        return bankBalances.getOrDefault(uuid, 0.0);
+    }
+
+    public double bankDeposit(UUID uuid, String name, double amount) {
+        if (amount <= 0) return 0;
+        Account a = getOrCreate(uuid, name);
+        if (!DinarMod.config.allowNegative && a.balance < amount) return 0;
+        a.balance = round(a.balance - amount);
+        double current = bankBalance(uuid);
+        bankBalances.put(uuid, round(current + amount));
+        log(a, "BANK_DEPOSIT", amount, "Banque", null);
+        return bankBalance(uuid);
+    }
+
+    public double bankWithdraw(UUID uuid, String name, double amount) {
+        if (amount <= 0) return 0;
+        double bank = bankBalance(uuid);
+        if (bank < amount) return 0;
+        bankBalances.put(uuid, round(bank - amount));
+        Account a = getOrCreate(uuid, name);
+        a.balance = round(a.balance + amount);
+        log(a, "BANK_WITHDRAW", amount, "Banque", null);
+        return bankBalance(uuid);
+    }
+
+    public void setBankBalance(UUID uuid, double amount) {
+        bankBalances.put(uuid, round(Math.max(0, amount)));
+    }
+
+    public Map<UUID, Double> getBankBalances() {
+        return bankBalances;
+    }
+
+    // ------------------------------------------------------------------
+    // Prêts
+    // ------------------------------------------------------------------
+
+    public LoanEntry createLoan(UUID uuid, String name, double amount, double interestRate, long durationSeconds) {
+        if (amount <= 0) return null;
+        LoanEntry existing = loans.get(uuid);
+        if (existing != null && !existing.isRepaid()) return null;
+        Account a = getOrCreate(uuid, name);
+        a.balance = round(a.balance + amount);
+        double totalOwed = round(amount * (1 + interestRate));
+        LoanEntry loan = new LoanEntry(uuid, amount, interestRate, totalOwed, durationSeconds);
+        loans.put(uuid, loan);
+        log(a, "LOAN_TAKE", amount, "Prêt", null);
+        return loan;
+    }
+
+    public double repayLoan(UUID uuid, String name, double amount) {
+        LoanEntry loan = loans.get(uuid);
+        if (loan == null || loan.isRepaid()) return 0;
+        Account a = getOrCreate(uuid, name);
+        double actual = Math.min(amount, a.balance);
+        if (actual <= 0) return 0;
+        a.balance = round(a.balance - actual);
+        loan.amountRepaid = round(loan.amountRepaid + actual);
+        if (loan.amountRepaid >= loan.totalOwed) {
+            loan.repaid = true;
+        }
+        log(a, "LOAN_REPAY", actual, "Prêt", null);
+        return actual;
+    }
+
+    public LoanEntry getLoan(UUID uuid) {
+        return loans.get(uuid);
+    }
+
+    public Map<UUID, LoanEntry> getLoans() {
+        return loans;
+    }
+
+    // ------------------------------------------------------------------
     // Divers
     // ------------------------------------------------------------------
 
@@ -499,6 +579,31 @@ public class EconomyManager {
             }
             root.add("salaries", sals);
 
+            JsonArray banks = new JsonArray();
+            for (Map.Entry<UUID, Double> e : bankBalances.entrySet()) {
+                JsonObject o = new JsonObject();
+                o.addProperty("uuid", e.getKey().toString());
+                o.addProperty("balance", e.getValue());
+                banks.add(o);
+            }
+            root.add("bankBalances", banks);
+
+            JsonArray loansArr = new JsonArray();
+            for (Map.Entry<UUID, LoanEntry> e : loans.entrySet()) {
+                LoanEntry l = e.getValue();
+                JsonObject o = new JsonObject();
+                o.addProperty("uuid", l.uuid.toString());
+                o.addProperty("amount", l.amount);
+                o.addProperty("interestRate", l.interestRate);
+                o.addProperty("totalOwed", l.totalOwed);
+                o.addProperty("amountRepaid", l.amountRepaid);
+                o.addProperty("createdAt", l.createdAt);
+                o.addProperty("expiresAt", l.expiresAt);
+                o.addProperty("repaid", l.repaid);
+                loansArr.add(o);
+            }
+            root.add("loans", loansArr);
+
             Files.createDirectories(dataFile.getParent());
             Path tmp = dataFile.resolveSibling("data.json.tmp");
             Files.writeString(tmp, new GsonBuilder().setPrettyPrinting().create().toJson(root));
@@ -554,6 +659,29 @@ public class EconomyManager {
                     s.intervalSeconds = o.has("intervalSeconds") ? o.get("intervalSeconds").getAsLong() : 3600;
                     s.lastPaid = o.has("lastPaid") ? o.get("lastPaid").getAsLong() : System.currentTimeMillis();
                     salaries.put(s.uuid, s);
+                }
+            }
+
+            if (root.has("bankBalances")) {
+                for (var el : root.getAsJsonArray("bankBalances")) {
+                    JsonObject o = el.getAsJsonObject();
+                    bankBalances.put(UUID.fromString(o.get("uuid").getAsString()), o.get("balance").getAsDouble());
+                }
+            }
+
+            if (root.has("loans")) {
+                for (var el : root.getAsJsonArray("loans")) {
+                    JsonObject o = el.getAsJsonObject();
+                    LoanEntry l = new LoanEntry();
+                    l.uuid = UUID.fromString(o.get("uuid").getAsString());
+                    l.amount = o.get("amount").getAsDouble();
+                    l.interestRate = o.get("interestRate").getAsDouble();
+                    l.totalOwed = o.get("totalOwed").getAsDouble();
+                    l.amountRepaid = o.has("amountRepaid") ? o.get("amountRepaid").getAsDouble() : 0;
+                    l.createdAt = o.has("createdAt") ? o.get("createdAt").getAsLong() : System.currentTimeMillis();
+                    l.expiresAt = o.has("expiresAt") ? o.get("expiresAt").getAsLong() : System.currentTimeMillis();
+                    l.repaid = o.has("repaid") ? o.get("repaid").getAsBoolean() : false;
+                    loans.put(l.uuid, l);
                 }
             }
         } catch (Exception e) {

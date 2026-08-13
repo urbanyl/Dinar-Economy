@@ -55,6 +55,16 @@ public class HelpScreenHandler extends GenericContainerScreenHandler {
         panelInv.setStack(15, cmd(Items.EMERALD, "/dinar scoreboard on|off", "Scoreboard latéral"));
         panelInv.setStack(16, cmd(Items.EMERALD, "/dinar about", "À propos du mod"));
 
+        // Row 1: Bank & Loan commands
+        panelInv.setStack(18, titled(Items.GOLD_BLOCK, "§6§l═══ BANQUE & PRÊTS ═══"));
+
+        panelInv.setStack(19, cmd(Items.GOLD_BLOCK, "/bank balance", "Solde bancaire"));
+        panelInv.setStack(20, cmd(Items.GOLD_BLOCK, "/bank deposit <montant>", "Déposer en banque"));
+        panelInv.setStack(21, cmd(Items.GOLD_BLOCK, "/bank withdraw <montant>", "Retirer de la banque"));
+        panelInv.setStack(22, cmd(Items.GOLD_NUGGET, "/loan take <montant> <taux> <durée>", "Contracter un prêt"));
+        panelInv.setStack(23, cmd(Items.GOLD_NUGGET, "/loan repay <montant>", "Rembourser un prêt"));
+        panelInv.setStack(24, cmd(Items.GOLD_NUGGET, "/loan info", "Votre prêt"));
+
         // Row 2: Government commands
         panelInv.setStack(22, titled(Items.BOOK, "§6§l═══ CALIPHAT ═══"));
 
@@ -79,6 +89,8 @@ public class HelpScreenHandler extends GenericContainerScreenHandler {
         panelInv.setStack(48, cmd(Items.NETHERITE_INGOT, "/eco panel", "Panel admin économie"));
         panelInv.setStack(49, cmd(Items.NETHERITE_INGOT, "/salary set <joueur> <montant>", "Définir un salaire"));
         panelInv.setStack(50, cmd(Items.NETHERITE_INGOT, "/tax set <joueur> <%>", "Taxe personnelle"));
+        panelInv.setStack(51, cmd(Items.NETHERITE_INGOT, "/bank deposit|withdraw", "Banque"));
+        panelInv.setStack(52, cmd(Items.NETHERITE_INGOT, "/loan take|repay", "Système de prêts"));
     }
 
     private static ItemStack named(net.minecraft.item.Item item, String name) {

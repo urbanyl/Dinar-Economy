@@ -7,7 +7,7 @@ La monnaie du serveur est le **Dinar (D)**.
 ## Installation
 
 1. Installez **Fabric Loader** pour Minecraft 1.21.1.
-2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.0.0.jar` dans le dossier `mods/`.
+2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.1.0.jar` dans le dossier `mods/`.
 3. (Optionnel) **Text Placeholder API** de Patbox + **TAB** pour les placeholders.
 
 ## Commandes joueurs
@@ -25,6 +25,26 @@ La monnaie du serveur est le **Dinar (D)**.
 | `/dmd` ou `/dmd list` | Lister vos demandes |
 | `/baltop [page]` | Classement des plus riches |
 
+### Banque
+
+| Commande | Description |
+| --- | --- |
+| `/bank balance` | Voir votre solde bancaire |
+| `/bank balance <joueur>` | Solde bancaire d'un autre joueur |
+| `/bank deposit <montant>` | Déposer de l'argent en banque |
+| `/bank withdraw <montant>` | Retirer de l'argent de la banque |
+
+### Prêts
+
+| Commande | Description |
+| --- | --- |
+| `/loan take <montant> <taux> <durée>` | Contracter un prêt (taux en décimal, ex: 0.1 = 10%) |
+| `/loan repay <montant>` | Rembourser tout ou partie de votre prêt |
+| `/loan info` | Voir les détails de votre prêt |
+| `/loan info <joueur>` | Voir le prêt d'un autre joueur |
+| `/loan list` | Lister tous les prêts en cours |
+| `/loan help` | Aide sur les prêts |
+
 ### Caliphat (gouvernement)
 
 | Commande | Description |
@@ -38,6 +58,7 @@ La monnaie du serveur est le **Dinar (D)**.
 | `/loi decret` | Voir le décret en cours |
 | `/loi calife` | Info du calife |
 | `/dinar help` | Panel d'aide avec toutes les commandes |
+| `/dinar about` | Informations sur le mod |
 
 ### Commandes admin (OP / permission 2)
 
@@ -75,6 +96,11 @@ La monnaie du serveur est le **Dinar (D)**.
 - `/tax set <joueur> <pourcent>` — Taxe personnelle
 - `/tax remove|list|info <joueur>`
 
+#### Banque & Prêts
+
+- `/bank deposit|withdraw` — Gestion bancaire
+- `/loan take|repay` — Système de prêts
+
 ## Scoreboard
 
 Le scoreboard latéral affiche le solde de chaque joueur.
@@ -94,6 +120,7 @@ Customisable dans `config/dinar.json` :
 
 - `%dinar:balance%` — Solde formaté
 - `%dinar:balance_raw%` — Solde brut
+- `%dinar:balance_int%` — Solde entier
 - `%dinar:rank%` — Rang au classement
 - `%dinar:treasury%` — Trésorerie
 - `%dinar:leader%` — Nom du calife
@@ -105,7 +132,7 @@ Customisable dans `config/dinar.json` :
 
 ## Données
 
-- Économie : `world/dinar/data.json`
+- Économie : `world/dinar/data.json` (inclut banque et prêts)
 - Gouvernement : `world/dinar/government.json`
 - Sauvegarde automatique toutes les 5 minutes.
 

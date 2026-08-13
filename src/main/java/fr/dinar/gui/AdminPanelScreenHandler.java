@@ -283,9 +283,9 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
             admin.sendMessage(Text.literal("§cSélectionnez d'abord un joueur."), false);
             return;
         }
-        if (value >= 0) {
+        if (value > 0) {
             eco.add(selected, eco.accountName(selected), value);
-        } else {
+        } else if (value < 0) {
             eco.take(selected, eco.accountName(selected), -value);
         }
         admin.sendMessage(Text.literal("§a" + (value >= 0 ? "+" : "") + value + " D §f→ §e"
