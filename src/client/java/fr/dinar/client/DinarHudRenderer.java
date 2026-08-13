@@ -25,11 +25,15 @@ public class DinarHudRenderer implements HudRenderCallback {
 
         TextRenderer textRenderer = client.textRenderer;
 
-        String walletText = formatMoney(getWalletBalance(client));
-        String bankText = formatMoney(getBankBalance(client));
+        double wallet = DinarClientData.getWalletBalance();
+        double bank = DinarClientData.getBankBalance();
+        String symbol = DinarClientData.getCurrencySymbol();
 
-        String labelWallet = "§7💰 Portefeuille";
-        String labelBank = "§7🏦 Banque";
+        String walletText = formatMoney(wallet, symbol);
+        String bankText = formatMoney(bank, symbol);
+
+        String labelWallet = "§7\ue142 Portefeuille";
+        String labelBank = "§7\ue144 Banque";
         String valueWallet = "§e" + walletText;
         String valueBank = "§b" + bankText;
 
@@ -38,59 +42,55 @@ public class DinarHudRenderer implements HudRenderCallback {
         int labelBankWidth = textRenderer.getWidth(stripFormatting(labelBank));
         int valueBankWidth = textRenderer.getWidth(stripFormatting(valueBank));
 
-        int walletBlockWidth = Math.max(labelWalletWidth, valueWalletWidth) + 12;
-        int bankBlockWidth = Math.max(labelBankWidth, valueBankWidth) + 12;
-        int gap = 8;
+        int walletBlockWidth = Math.max(labelWalletWidth, valueWalletWidth) + 16;
+        int bankBlockWidth = Math.max(labelBankWidth, valueBankWidth) + 16;
+        int gap = 10;
         int totalWidth = walletBlockWidth + gap + bankBlockWidth;
-        int panelHeight = 32;
+        int panelHeight = 34;
 
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
         int x = (screenWidth - totalWidth) / 2;
-        int y = screenHeight - panelHeight - 5;
+        int y = screenHeight - panelHeight - 6;
 
         context.fill(x - 2, y - 2, x + totalWidth + 2, y + panelHeight + 2, BORDER_COLOR);
         context.fill(x, y, x + totalWidth, y + panelHeight, BG_COLOR);
 
-        int walletX = x + 6;
-        int bankX = x + walletBlockWidth + gap + 6;
+        int walletX = x + 8;
+        int bankX = x + walletBlockWidth + gap + 8;
 
-        context.drawTextWithShadow(textRenderer, Text.literal(labelWallet), walletX, y + 4, LABEL_COLOR);
-        context.drawTextWithShadow(textRenderer, Text.literal(valueWallet), walletX, y + 16, WALLET_COLOR);
+        drawIcon(context, walletX - 2, y + 3, 0xFFD4AF37);
+        context.drawTextWithShadow(textRenderer, Text.literal(labelWallet), walletX + 8, y + 4, LABEL_COLOR);
+        context.drawTextWithShadow(textRenderer, Text.literal(valueWallet), walletX + 8, y + 17, WALLET_COLOR);
 
         context.fill(x + walletBlockWidth + gap / 2, y + 4, x + walletBlockWidth + gap / 2 + 1, y + panelHeight - 4, SEPARATOR_COLOR);
 
-        context.drawTextWithShadow(textRenderer, Text.literal(labelBank), bankX, y + 4, LABEL_COLOR);
-        context.drawTextWithShadow(textRenderer, Text.literal(valueBank), bankX, y + 16, BANK_COLOR);
+        drawIcon(context, bankX - 2, y + 3, 0xFF5BC0EB);
+        context.drawTextWithShadow(textRenderer, Text.literal(labelBank), bankX + 8, y + 4, LABEL_COLOR);
+        context.drawTextWithShadow(textRenderer, Text.literal(valueBank), bankX + 8, y + 17, BANK_COLOR);
     }
 
-    private double getWalletBalance(MinecraftClient client) {
-        if (client.player == null) return 0;
-        try {
-            return fr.dinar.DinarMod.economy.balance(client.player.getUuid());
-        } catch (Exception e) {
-            return 0;
-        }
+    private void drawIcon(DrawContext context, int x, int y, int color) {
+        int s = 8;
+        context.fill(x + 1, y, x + s - 1, y + 1, color);
+        context.fill(x, y + 1, x + s, y + s - 1, color);
+        context.fill(x + 1, y + s, x + s - 1, y + s + 1, color);
     }
 
-    private double getBankBalance(MinecraftClient client) {
-        if (client.player == null) return 0;
-        try {
-            return fr.dinar.DinarMod.economy.bankBalance(client.player.getUuid());
-        } catch (Exception e) {
-            return 0;
+    private String formatMoney(double value, String symbol) {
+        double abs = Math.abs(value);
+        String formatted;
+        if (abs >= 1_000_000) {
+            formatted = String.format("%.1fM", value / 1_000_000);
+        } else if (abs >= 1_000) {
+            formatted = String.format("%.1fK", value / 1_000);
+        } else {
+            formatted = String.format("%.0f", value);
         }
-    }
-
-    private String formatMoney(double value) {
-        try {
-            return fr.dinar.DinarMod.economy.format(value) + " " + fr.dinar.DinarMod.config.currencySymbol;
-        } catch (Exception e) {
-            return String.format("%.2f D", value);
-        }
+        return formatted + " " + symbol;
     }
 
     private String stripFormatting(String text) {
-        return text.replaceAll("§[0-9a-fk-or]", "");
+        return text.replaceAll("§[0-9a-fk-or]", "").replaceAll("\\\\u[0-9a-fA-F]{4}", "");
     }
 }

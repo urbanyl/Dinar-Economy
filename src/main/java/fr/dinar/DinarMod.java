@@ -13,11 +13,19 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DinarMod implements ModInitializer {
     public static final String MOD_ID = "dinar";
@@ -31,8 +39,13 @@ public class DinarMod implements ModInitializer {
     public static AuctionManager auctions;
     public static ContractManager contracts;
 
+    private final Map<UUID, Integer> lastSyncTick = new ConcurrentHashMap<>();
+    private static final int SYNC_INTERVAL = 40;
+    private static DinarMod INSTANCE;
+
     @Override
     public void onInitialize() {
+        INSTANCE = this;
         config = DinarConfig.load();
         economy = new EconomyManager();
         government = new GovernmentManager();
@@ -41,13 +54,16 @@ public class DinarMod implements ModInitializer {
         auctions = new AuctionManager();
         contracts = new ContractManager();
 
+        PayloadTypeRegistry.playS2C().register(BalanceSyncPayload.ID, BalanceSyncPayload.CODEC);
+
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             economy.onServerStart(server);
             government.onServerStart(server);
-            shops.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
-            companies.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
-            auctions.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
-            contracts.load(server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar"));
+            var dataDir = server.getSavePath(net.minecraft.util.WorldSavePath.ROOT).resolve("dinar");
+            shops.load(dataDir);
+            companies.load(dataDir);
+            auctions.load(dataDir);
+            contracts.load(dataDir);
             LOGGER.info("[Dinar] Shops: {}, Entreprises: {}, Ventes: {}, Contrats: {}",
                     shops.getAll().size(), companies.getAll().size(),
                     auctions.getAll().size(), contracts.getAll().size());
@@ -60,10 +76,17 @@ public class DinarMod implements ModInitializer {
             companies.save(dataDir);
             auctions.save(dataDir);
             contracts.save(dataDir);
+            INSTANCE.lastSyncTick.clear();
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> economy.onPlayerJoin(handler.getPlayer()));
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> economy.getScoreboard().removePlayer(handler.getPlayer()));
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            economy.onPlayerJoin(handler.getPlayer());
+            syncBalance(handler.getPlayer());
+        });
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            economy.getScoreboard().removePlayer(handler.getPlayer());
+            INSTANCE.lastSyncTick.remove(handler.getPlayer().getUuid());
+        });
 
         CommandRegistrationCallback.EVENT.register(ModCommands::register);
 
@@ -83,5 +106,38 @@ public class DinarMod implements ModInitializer {
         if (economy.getServer() == null) return;
         economy.tick(server);
         government.tick();
+
+        int currentTick = server.getTicks();
+        if (currentTick % SYNC_INTERVAL == 0) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                int last = lastSyncTick.getOrDefault(player.getUuid(), 0);
+                if (currentTick - last >= SYNC_INTERVAL) {
+                    syncBalance(player);
+                }
+            }
+        }
+    }
+
+    public static void syncBalance(ServerPlayerEntity player) {
+        if (player == null || economy == null) return;
+        try {
+            UUID uuid = player.getUuid();
+            double wallet = economy.balance(uuid);
+            double bank = economy.bankBalance(uuid);
+            String symbol = config != null ? config.currencySymbol : "D";
+
+            NbtCompound nbt = new NbtCompound();
+            nbt.putDouble("wallet", wallet);
+            nbt.putDouble("bank", bank);
+            nbt.putString("symbol", symbol);
+
+            ServerPlayNetworking.send(player, new BalanceSyncPayload(nbt));
+
+            if (INSTANCE != null && player.getServer() != null) {
+                INSTANCE.lastSyncTick.put(uuid, player.getServer().getTicks());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("[Dinar] Erreur envoi packet balance à {}.", player.getName().getString(), e);
+        }
     }
 }
