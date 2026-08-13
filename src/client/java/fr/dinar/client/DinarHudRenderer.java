@@ -9,12 +9,11 @@ import net.minecraft.text.Text;
 
 public class DinarHudRenderer implements HudRenderCallback {
 
-    private static final int BG_COLOR = 0xCC1A1A2E;
+    private static final int BG_COLOR = 0xB8121220;
     private static final int BORDER_COLOR = 0xFFD4AF37;
-    private static final int WALLET_COLOR = 0xFFD4AF37;
-    private static final int BANK_COLOR = 0xFF5BC0EB;
-    private static final int LABEL_COLOR = 0xFFAAAAAA;
-    private static final int SEPARATOR_COLOR = 0xFF555555;
+    private static final int WALLET_COLOR = 0xFFF2C94C;
+    private static final int BANK_COLOR = 0xFF56CCF2;
+    private static final int COMPANY_COLOR = 0xFF6FCF97;
 
     @Override
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
@@ -25,53 +24,55 @@ public class DinarHudRenderer implements HudRenderCallback {
 
         TextRenderer textRenderer = client.textRenderer;
 
-        double wallet = DinarClientData.getWalletBalance();
-        double bank = DinarClientData.getBankBalance();
         String symbol = DinarClientData.getCurrencySymbol();
+        String walletText = formatMoney(DinarClientData.getWalletBalance(), symbol);
+        String bankText = formatMoney(DinarClientData.getBankBalance(), symbol);
+        String companyText = formatMoney(DinarClientData.getCompanyBalance(), symbol);
+        boolean hasCompany = DinarClientData.getHasCompany();
 
-        String walletText = formatMoney(wallet, symbol);
-        String bankText = formatMoney(bank, symbol);
+        int walletWidth = textRenderer.getWidth(walletText);
+        int bankWidth = textRenderer.getWidth(bankText);
+        int companyWidth = textRenderer.getWidth(companyText);
 
-        String labelWallet = "§7\ue142 Portefeuille";
-        String labelBank = "§7\ue144 Banque";
-        String valueWallet = "§e" + walletText;
-        String valueBank = "§b" + bankText;
+        int iconSize = 6;
+        int iconGap = 4;
+        int padX = 8;
+        int padY = 5;
+        int rowGap = 2;
+        int rowHeight = 9;
 
-        int labelWalletWidth = textRenderer.getWidth(stripFormatting(labelWallet));
-        int valueWalletWidth = textRenderer.getWidth(stripFormatting(valueWallet));
-        int labelBankWidth = textRenderer.getWidth(stripFormatting(labelBank));
-        int valueBankWidth = textRenderer.getWidth(stripFormatting(valueBank));
-
-        int walletBlockWidth = Math.max(labelWalletWidth, valueWalletWidth) + 16;
-        int bankBlockWidth = Math.max(labelBankWidth, valueBankWidth) + 16;
-        int gap = 10;
-        int totalWidth = walletBlockWidth + gap + bankBlockWidth;
-        int panelHeight = 34;
+        int rows = hasCompany ? 3 : 2;
+        int contentWidth = Math.max(walletWidth, Math.max(bankWidth, hasCompany ? companyWidth : 0));
+        int panelWidth = padX * 2 + iconSize + iconGap + contentWidth;
+        int panelHeight = padY * 2 + rows * rowHeight + (rows - 1) * rowGap;
 
         int screenWidth = client.getWindow().getScaledWidth();
-        int screenHeight = client.getWindow().getScaledHeight();
-        int x = (screenWidth - totalWidth) / 2;
-        int y = screenHeight - panelHeight - 6;
+        int margin = 4;
+        int x = screenWidth - panelWidth - margin;
+        int y = margin;
 
-        context.fill(x - 2, y - 2, x + totalWidth + 2, y + panelHeight + 2, BORDER_COLOR);
-        context.fill(x, y, x + totalWidth, y + panelHeight, BG_COLOR);
+        context.fill(x - 1, y - 1, x + panelWidth + 1, y + panelHeight + 1, BORDER_COLOR);
+        context.fill(x, y, x + panelWidth, y + panelHeight, BG_COLOR);
 
-        int walletX = x + 8;
-        int bankX = x + walletBlockWidth + gap + 8;
+        int textX = x + padX + iconSize + iconGap;
+        int iconX = x + padX;
+        int rowY = y + padY;
 
-        drawIcon(context, walletX - 2, y + 3, 0xFFD4AF37);
-        context.drawTextWithShadow(textRenderer, Text.literal(labelWallet), walletX + 8, y + 4, LABEL_COLOR);
-        context.drawTextWithShadow(textRenderer, Text.literal(valueWallet), walletX + 8, y + 17, WALLET_COLOR);
+        drawIcon(context, iconX, rowY, WALLET_COLOR);
+        context.drawTextWithShadow(textRenderer, Text.literal(walletText), textX, rowY, WALLET_COLOR);
+        rowY += rowHeight + rowGap;
 
-        context.fill(x + walletBlockWidth + gap / 2, y + 4, x + walletBlockWidth + gap / 2 + 1, y + panelHeight - 4, SEPARATOR_COLOR);
-
-        drawIcon(context, bankX - 2, y + 3, 0xFF5BC0EB);
-        context.drawTextWithShadow(textRenderer, Text.literal(labelBank), bankX + 8, y + 4, LABEL_COLOR);
-        context.drawTextWithShadow(textRenderer, Text.literal(valueBank), bankX + 8, y + 17, BANK_COLOR);
+        drawIcon(context, iconX, rowY, BANK_COLOR);
+        context.drawTextWithShadow(textRenderer, Text.literal(bankText), textX, rowY, BANK_COLOR);
+        if (hasCompany) {
+            rowY += rowHeight + rowGap;
+            drawIcon(context, iconX, rowY, COMPANY_COLOR);
+            context.drawTextWithShadow(textRenderer, Text.literal(companyText), textX, rowY, COMPANY_COLOR);
+        }
     }
 
     private void drawIcon(DrawContext context, int x, int y, int color) {
-        int s = 8;
+        int s = 6;
         context.fill(x + 1, y, x + s - 1, y + 1, color);
         context.fill(x, y + 1, x + s, y + s - 1, color);
         context.fill(x + 1, y + s, x + s - 1, y + s + 1, color);
@@ -88,9 +89,5 @@ public class DinarHudRenderer implements HudRenderCallback {
             formatted = String.format("%.0f", value);
         }
         return formatted + " " + symbol;
-    }
-
-    private String stripFormatting(String text) {
-        return text.replaceAll("§[0-9a-fk-or]", "").replaceAll("\\\\u[0-9a-fA-F]{4}", "");
     }
 }

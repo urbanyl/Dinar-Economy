@@ -17,7 +17,7 @@ public final class AmendeCommand {
         dispatcher.register(CommandManager.literal("amende")
                 .requires(s -> s.hasPermissionLevel(2) || DinarMod.government.isLeader(
                         s.getPlayer() != null ? s.getPlayer().getUuid() : null))
-                .then(CommandManager.argument("joueur", StringArgumentType.word())
+                .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                         .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                 .then(CommandManager.argument("raison", StringArgumentType.greedyString())
                                         .executes(AmendeCommand::amend))))

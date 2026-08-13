@@ -40,8 +40,14 @@ public class DinarMod implements ModInitializer {
     public static ContractManager contracts;
 
     private final Map<UUID, Integer> lastSyncTick = new ConcurrentHashMap<>();
+    private final Map<UUID, Boolean> dirtyPlayers = new ConcurrentHashMap<>();
     private static final int SYNC_INTERVAL = 40;
     private static DinarMod INSTANCE;
+
+    public static void markDirty(UUID uuid) {
+        if (uuid == null || INSTANCE == null) return;
+        INSTANCE.dirtyPlayers.put(uuid, Boolean.TRUE);
+    }
 
     @Override
     public void onInitialize() {
@@ -86,6 +92,7 @@ public class DinarMod implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             economy.getScoreboard().removePlayer(handler.getPlayer());
             INSTANCE.lastSyncTick.remove(handler.getPlayer().getUuid());
+            INSTANCE.dirtyPlayers.remove(handler.getPlayer().getUuid());
         });
 
         CommandRegistrationCallback.EVENT.register(ModCommands::register);
@@ -107,6 +114,14 @@ public class DinarMod implements ModInitializer {
         economy.tick(server);
         government.tick();
 
+        if (!dirtyPlayers.isEmpty()) {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (dirtyPlayers.remove(player.getUuid()) != null) {
+                    syncBalance(player);
+                }
+            }
+        }
+
         int currentTick = server.getTicks();
         if (currentTick % SYNC_INTERVAL == 0) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -124,11 +139,16 @@ public class DinarMod implements ModInitializer {
             UUID uuid = player.getUuid();
             double wallet = economy.balance(uuid);
             double bank = economy.bankBalance(uuid);
+            var ownedCompany = companies.getByOwner(uuid).stream().findFirst();
+            double company = ownedCompany.isPresent() ? ownedCompany.get().balance : 0;
+            boolean hasCompany = ownedCompany.isPresent();
             String symbol = config != null ? config.currencySymbol : "D";
 
             NbtCompound nbt = new NbtCompound();
             nbt.putDouble("wallet", wallet);
             nbt.putDouble("bank", bank);
+            nbt.putDouble("company", company);
+            nbt.putBoolean("hasCompany", hasCompany);
             nbt.putString("symbol", symbol);
 
             ServerPlayNetworking.send(player, new BalanceSyncPayload(nbt));

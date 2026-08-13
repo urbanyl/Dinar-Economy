@@ -21,19 +21,19 @@ public final class EcoCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("eco").requires(s -> s.hasPermissionLevel(2))
                 .then(CommandManager.literal("give")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                         .executes(EcoCommand::give))))
                 .then(CommandManager.literal("take")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                         .executes(EcoCommand::take))))
                 .then(CommandManager.literal("set")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                         .executes(EcoCommand::set))))
                 .then(CommandManager.literal("reset")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(EcoCommand::reset)))
                 .then(CommandManager.literal("resetall").executes(EcoCommand::resetAll))
                 .then(CommandManager.literal("panel").executes(EcoCommand::panel))
@@ -48,7 +48,7 @@ public final class EcoCommand {
                                 .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                         .executes(EcoCommand::treasuryTake))))
                 .then(CommandManager.literal("history")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(EcoCommand::history))));
     }
 

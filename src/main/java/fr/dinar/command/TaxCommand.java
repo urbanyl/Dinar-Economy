@@ -24,15 +24,15 @@ public final class TaxCommand {
                         .then(CommandManager.argument("pourcent", DoubleArgumentType.doubleArg(0, 100))
                                 .executes(TaxCommand::salary)))
                 .then(CommandManager.literal("set")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .then(CommandManager.argument("pourcent", DoubleArgumentType.doubleArg(0, 100))
                                         .executes(TaxCommand::setPlayer))))
                 .then(CommandManager.literal("remove")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(TaxCommand::removePlayer)))
                 .then(CommandManager.literal("list").executes(TaxCommand::list))
                 .then(CommandManager.literal("info")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(TaxCommand::info))));
     }
 

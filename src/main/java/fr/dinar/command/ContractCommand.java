@@ -20,7 +20,7 @@ public final class ContractCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("contract")
                 .then(CommandManager.literal("create")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .then(CommandManager.argument("type", StringArgumentType.word())
                                         .then(CommandManager.argument("details", StringArgumentType.greedyString())
                                                 .executes(ctx -> ContractCommand.create(ctx, 0))

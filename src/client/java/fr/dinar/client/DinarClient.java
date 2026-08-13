@@ -17,8 +17,10 @@ public class DinarClient implements ClientModInitializer {
                 if (payload == null || payload.data() == null) return;
                 double wallet = payload.data().getDouble("wallet");
                 double bank = payload.data().getDouble("bank");
+                double company = payload.data().getDouble("company");
+                boolean hasCompany = payload.data().getBoolean("hasCompany");
                 String symbol = payload.data().contains("symbol") ? payload.data().getString("symbol") : "D";
-                context.client().execute(() -> DinarClientData.update(wallet, bank, symbol));
+                context.client().execute(() -> DinarClientData.update(wallet, bank, company, hasCompany, symbol));
             } catch (Exception e) {
                 DinarMod.LOGGER.warn("[Dinar] Erreur réception packet balance.", e);
             }

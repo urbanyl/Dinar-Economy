@@ -23,7 +23,7 @@ public final class CaliphatCommand {
         dispatcher.register(CommandManager.literal("caliphat")
                 .then(CommandManager.literal("help").executes(CaliphatCommand::help))
                 .then(CommandManager.literal("set")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(CaliphatCommand::setLeader))
                         .requires(s -> s.hasPermissionLevel(2)))
                 .then(CommandManager.literal("remove")

@@ -18,7 +18,7 @@ public final class PayCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         for (String name : new String[]{"pay", "send", "payer"}) {
             dispatcher.register(CommandManager.literal(name)
-                    .then(CommandManager.argument("joueur", StringArgumentType.word())
+                    .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                             .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                     .executes(ctx -> run(ctx, null))
                                     .then(CommandManager.argument("raison", StringArgumentType.greedyString())

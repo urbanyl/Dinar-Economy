@@ -26,7 +26,15 @@ public class CompanyManager {
         }
         CompanyEntry company = new CompanyEntry(nextId++, name, ownerUuid, ownerName);
         companies.put(company.id, company);
+        DinarMod.markDirty(ownerUuid);
         return company;
+    }
+
+    public void remove(int id) {
+        CompanyEntry removed = companies.remove(id);
+        if (removed != null) {
+            notifyCompanyChanged(removed);
+        }
     }
 
     public CompanyEntry get(int id) {
@@ -39,8 +47,13 @@ public class CompanyManager {
                 .findFirst().orElse(null);
     }
 
-    public void remove(int id) {
-        companies.remove(id);
+    private void notifyCompanyChanged(CompanyEntry company) {
+        DinarMod.markDirty(company.ownerUuid);
+        for (String m : company.members) {
+            try {
+                DinarMod.markDirty(UUID.fromString(m));
+            } catch (Exception ignored) {}
+        }
     }
 
     public List<CompanyEntry> getAll() {
@@ -65,6 +78,7 @@ public class CompanyManager {
         if (amount <= 0) return false;
         if (!eco.deductFromBalance(playerUuid, playerName, amount)) return false;
         company.balance = eco.round(company.balance + amount);
+        notifyCompanyChanged(company);
         return true;
     }
 
@@ -73,6 +87,7 @@ public class CompanyManager {
         if (company.balance < amount) return false;
         company.balance = eco.round(company.balance - amount);
         eco.add(playerUuid, playerName, amount);
+        notifyCompanyChanged(company);
         return true;
     }
 

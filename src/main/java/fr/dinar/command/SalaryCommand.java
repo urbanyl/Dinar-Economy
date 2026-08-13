@@ -21,18 +21,18 @@ public final class SalaryCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("salary").requires(s -> s.hasPermissionLevel(2))
                 .then(CommandManager.literal("set")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                         .executes(ctx -> set(ctx, DEFAULT_INTERVAL))
                                         .then(CommandManager.argument("intervalle_secondes", LongArgumentType.longArg(1))
                                                 .executes(ctx -> set(ctx, LongArgumentType.getLong(ctx, "intervalle_secondes")))))))
                 .then(CommandManager.literal("remove")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(SalaryCommand::remove)))
                 .then(CommandManager.literal("list").executes(SalaryCommand::list))
                 .then(CommandManager.literal("payall").executes(SalaryCommand::payAll))
                 .then(CommandManager.literal("info")
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(SalaryCommand::info))));
     }
 

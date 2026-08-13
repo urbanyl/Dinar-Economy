@@ -16,7 +16,7 @@ public final class BalanceCommand {
         for (String name : new String[]{"bal", "balance", "money"}) {
             dispatcher.register(CommandManager.literal(name)
                     .executes(BalanceCommand::runSelf)
-                    .then(CommandManager.argument("joueur", StringArgumentType.word())
+                    .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                             .executes(BalanceCommand::runOther)));
         }
     }

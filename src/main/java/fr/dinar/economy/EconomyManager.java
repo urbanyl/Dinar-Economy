@@ -21,6 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -127,6 +128,7 @@ public class EconomyManager {
     public double add(UUID uuid, String name, double amount) {
         Account a = getOrCreate(uuid, name);
         a.balance = round(a.balance + amount);
+        notifyChanged(uuid);
         return a.balance;
     }
 
@@ -134,17 +136,20 @@ public class EconomyManager {
         Account a = getOrCreate(uuid, name);
         double actual = DinarMod.config.allowNegative ? amount : Math.min(amount, a.balance);
         a.balance = round(a.balance - actual);
+        notifyChanged(uuid);
         return actual;
     }
 
     public void setBalance(UUID uuid, String name, double amount) {
         Account a = getOrCreate(uuid, name);
         a.balance = round(amount);
+        notifyChanged(uuid);
     }
 
     public void resetAll() {
         for (Account a : accounts.values()) {
             a.balance = round(DinarMod.config.startingBalance);
+            notifyChanged(a.uuid);
         }
     }
 
@@ -156,10 +161,15 @@ public class EconomyManager {
         return Math.round(v * 100.0) / 100.0;
     }
 
+    private void notifyChanged(UUID uuid) {
+        DinarMod.markDirty(uuid);
+    }
+
     public boolean deductFromBalance(UUID uuid, String name, double amount) {
         Account a = getOrCreate(uuid, name);
         if (!DinarMod.config.allowNegative && a.balance < amount) return false;
         a.balance = round(a.balance - amount);
+        notifyChanged(uuid);
         return true;
     }
 
@@ -267,6 +277,8 @@ public class EconomyManager {
         treasury = round(treasury + tax);
         log(s, "SEND", amount, target.displayName(), reason);
         log(t, "RECEIVE", received, sender.displayName(), reason);
+        notifyChanged(sender.uuid());
+        notifyChanged(target.uuid());
         return TransferResult.ok(tax, received);
     }
 
@@ -278,6 +290,7 @@ public class EconomyManager {
         treasury = round(treasury + tax);
         entry.lastPaid = System.currentTimeMillis();
         log(a, "SALARY", net, "Salaire", null);
+        notifyChanged(entry.uuid);
         ServerPlayerEntity p = online(entry.uuid);
         if (p != null) {
             p.sendMessage(Text.literal("§a[Salaire] §fVous avez reçu §e" + money(net) + " §f(salaire)."), false);
@@ -383,7 +396,27 @@ public class EconomyManager {
                 return new PlayerRef(gp.getId(), gp.getName(), null);
             }
         }
-        return null;
+        return resolvePrefix(name);
+    }
+
+    private PlayerRef resolvePrefix(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        Map<UUID, PlayerRef> dedup = new LinkedHashMap<>();
+        for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
+            if (p.getGameProfile().getName().toLowerCase(Locale.ROOT).startsWith(lower)) {
+                dedup.putIfAbsent(p.getUuid(), PlayerRef.ofOnline(p));
+            }
+        }
+        for (Account a : accounts.values()) {
+            if (a.name != null && a.name.toLowerCase(Locale.ROOT).startsWith(lower)) {
+                dedup.putIfAbsent(a.uuid, new PlayerRef(a.uuid, a.name, null));
+            }
+        }
+        return dedup.size() == 1 ? dedup.values().iterator().next() : null;
+    }
+
+    public List<Account> getAccounts() {
+        return new ArrayList<>(accounts.values());
     }
 
     public PlayerRef resolveUuid(UUID uuid) {
@@ -465,6 +498,7 @@ public class EconomyManager {
         double current = bankBalance(uuid);
         bankBalances.put(uuid, round(current + amount));
         log(a, "BANK_DEPOSIT", amount, "Banque", null);
+        notifyChanged(uuid);
         return bankBalance(uuid);
     }
 
@@ -476,11 +510,13 @@ public class EconomyManager {
         Account a = getOrCreate(uuid, name);
         a.balance = round(a.balance + amount);
         log(a, "BANK_WITHDRAW", amount, "Banque", null);
+        notifyChanged(uuid);
         return bankBalance(uuid);
     }
 
     public void setBankBalance(UUID uuid, double amount) {
         bankBalances.put(uuid, round(Math.max(0, amount)));
+        notifyChanged(uuid);
     }
 
     public Map<UUID, Double> getBankBalances() {
@@ -494,6 +530,7 @@ public class EconomyManager {
             double interest = round(e.getValue() * rate);
             if (interest > 0) {
                 e.setValue(round(e.getValue() + interest));
+                notifyChanged(e.getKey());
                 ServerPlayerEntity p = online(e.getKey());
                 if (p != null) {
                     double bal = e.getValue();
@@ -518,6 +555,7 @@ public class EconomyManager {
         LoanEntry loan = new LoanEntry(uuid, amount, interestRate, totalOwed, durationSeconds);
         loans.put(uuid, loan);
         log(a, "LOAN_TAKE", amount, "Prêt", null);
+        notifyChanged(uuid);
         return loan;
     }
 
@@ -533,6 +571,7 @@ public class EconomyManager {
             loan.repaid = true;
         }
         log(a, "LOAN_REPAY", actual, "Prêt", null);
+        notifyChanged(uuid);
         return actual;
     }
 

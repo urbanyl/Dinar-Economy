@@ -16,7 +16,7 @@ public final class BankCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("bank")
                 .then(CommandManager.literal("balance").executes(BankCommand::balance)
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(BankCommand::balanceOther)))
                 .then(CommandManager.literal("deposit")
                         .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))

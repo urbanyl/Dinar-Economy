@@ -28,7 +28,7 @@ public final class LoanCommand {
                         .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                 .executes(LoanCommand::repay)))
                 .then(CommandManager.literal("info").executes(LoanCommand::info)
-                        .then(CommandManager.argument("joueur", StringArgumentType.word())
+                        .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                                 .executes(LoanCommand::infoOther)))
                 .then(CommandManager.literal("list").executes(LoanCommand::list))
                 .then(CommandManager.literal("help").executes(LoanCommand::help)));

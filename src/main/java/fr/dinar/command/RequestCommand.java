@@ -32,7 +32,7 @@ public final class RequestCommand {
                 .then(CommandManager.literal("deny")
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .executes(RequestCommand::deny)))
-                .then(CommandManager.argument("joueur", StringArgumentType.word())
+                .then(CommandManager.argument("joueur", PlayerArgumentType.player())
                         .then(CommandManager.argument("montant", DoubleArgumentType.doubleArg(0))
                                 .executes(ctx -> create(ctx, null))
                                 .then(CommandManager.argument("message", StringArgumentType.greedyString())
