@@ -27,6 +27,11 @@ public final class ModCommands {
         AuctionCommand.register(dispatcher);
         ContractCommand.register(dispatcher);
         AmendeCommand.register(dispatcher);
+        CourrierCommand.register(dispatcher);
+        DossierCommand.register(dispatcher);
+        PoliceCommand.register(dispatcher);
+        PrisonCommand.register(dispatcher);
+        JournalCommand.register(dispatcher);
     }
 
     private ModCommands() {}

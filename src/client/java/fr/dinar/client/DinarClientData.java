@@ -21,6 +21,7 @@ public final class DinarClientData {
     public static double getCompanyBalance() { return companyBalance; }
     public static boolean getHasCompany() { return hasCompany; }
     public static String getCurrencySymbol() { return currencySymbol; }
+    public static boolean isInitialized() { return initialized; }
     public static List<MoneyGainEvent> getMoneyGains() { return GAINS; }
 
     public static void update(double wallet, double bank, double company, boolean hasCompanyFlag, String symbol) {

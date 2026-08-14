@@ -68,6 +68,17 @@ public final class AmendeCommand {
         DinarMod.government.broadcast("§6§lCaliphat §r§7» §e" + display + " §ca été amende de §e"
                 + DinarMod.economy.money(finalAmount) + " §7pour : §f" + finalReason);
 
+        DinarMod.rpLog.log("AMENDE", display + " a été amendé de " + DinarMod.economy.money(finalAmount)
+                + " par " + finalIssuer + " pour : " + finalReason);
+        DinarMod.rpLog.sendEmbed(new fr.dinar.logs.DiscordWebhook.DiscordEmbed()
+                .title("💰 Amende")
+                .field("Joueur", display)
+                .field("Montant", DinarMod.economy.money(finalAmount))
+                .field("Motif", finalReason)
+                .field("Infligée par", finalIssuer)
+                .color(0xE67E22)
+                .footer("Dinar RP"));
+
         return 1;
     }
 

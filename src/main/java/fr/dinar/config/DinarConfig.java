@@ -25,6 +25,9 @@ public class DinarConfig {
     public boolean suffixFormat = true;
     public int autoSaveIntervalTicks = 6000;
     public int historySize = 20;
+    public String discordWebhook = "";
+    public boolean discordWebhookEnabled = false;
+    public String discordWebhookTitle = "Dinar RP";
     public ScoreboardConfig scoreboard = new ScoreboardConfig();
 
     public static class ScoreboardConfig {

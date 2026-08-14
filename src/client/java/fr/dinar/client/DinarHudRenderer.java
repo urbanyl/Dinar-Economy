@@ -14,19 +14,63 @@ public class DinarHudRenderer implements HudRenderCallback {
 
     private static final int PANEL_BG = 0xB0000000;
     private static final int PANEL_BORDER = 0x33FFFFFF;
-    private static final int CASH_GREEN = 0xFF41E01F;
-    private static final int BANK_BLUE = 0xFF56CCF2;
-    private static final int COMPANY_GREEN = 0xFF2ECC71;
-    private static final int WALLET_TEXT = 0xFFE9FFE2;
-    private static final int BANK_TEXT = 0xFF7ED0FF;
-    private static final int COMPANY_TEXT = 0xFF8BFFB0;
+    private static final int WALLET_COLOR = 0xFFF2C94C;
+    private static final int BANK_COLOR = 0xFF2ECC71;
+    private static final int COMPANY_COLOR = 0xFF56CCF2;
+    private static final int WALLET_TEXT = 0xFFFFF4C9;
+    private static final int BANK_TEXT = 0xFF8BFFB0;
+    private static final int COMPANY_TEXT = 0xFF7ED0FF;
     private static final int FLASH_MS = 250;
     private static final int MARGIN = 4;
+    private static final int ICON_W = 9;
+    private static final int ICON_H = 9;
+    private static final int ICON_GAP = 6;
+    private static final int PAD_X = 8;
+    private static final int PAD_Y = 6;
+    private static final int ROW_HEIGHT = 11;
+    private static final int ROW_GAP = 5;
+
+    private static final String[] COIN_ICON = {
+            "..XXXXX..",
+            ".XXXXXXX.",
+            "XXXXXXXXX",
+            "XXXXXXXXX",
+            "XXX.XXX.X",
+            "XXXXXXXXX",
+            "XXXXXXXXX",
+            ".XXXXXXX.",
+            "..XXXXX..",
+    };
+
+    private static final String[] BANK_ICON = {
+            ".XXXXXXX.",
+            "XXXXXXXXX",
+            ".XXXXXXX.",
+            ".X..X..X.",
+            ".X..X..X.",
+            ".X..X..X.",
+            ".XXXXXXX.",
+            ".XX...XX.",
+            ".XXXXXXX.",
+    };
+
+    private static final String[] BRIEFCASE_ICON = {
+            "...XXX...",
+            "...XXX...",
+            "XXXXXXXXX",
+            "X..XXX..X",
+            "X.......X",
+            "X.......X",
+            "X.......X",
+            "X.......X",
+            "XXXXXXXXX",
+    };
 
     private long lastWalletBits = Long.MIN_VALUE;
     private long lastBankBits = Long.MIN_VALUE;
     private long walletFlashMs = 0;
     private long bankFlashMs = 0;
+    private boolean flashInitialized = false;
 
     @Override
     public void onHudRender(DrawContext context, RenderTickCounter tickCounter) {
@@ -43,32 +87,31 @@ public class DinarHudRenderer implements HudRenderCallback {
 
         long now = System.currentTimeMillis();
         long walletBits = Double.doubleToLongBits(wallet);
-        if (walletBits != lastWalletBits) {
-            lastWalletBits = walletBits;
-            walletFlashMs = now;
-        }
         long bankBits = Double.doubleToLongBits(bank);
-        if (bankBits != lastBankBits) {
+        if (!flashInitialized) {
+            flashInitialized = true;
+            lastWalletBits = walletBits;
             lastBankBits = bankBits;
-            bankFlashMs = now;
+        } else {
+            if (walletBits != lastWalletBits) {
+                lastWalletBits = walletBits;
+                walletFlashMs = now;
+            }
+            if (bankBits != lastBankBits) {
+                lastBankBits = bankBits;
+                bankFlashMs = now;
+            }
         }
 
         String walletText = formatMoney(wallet, symbol);
         String bankText = formatMoney(bank, symbol);
         String companyText = hasCompany ? formatMoney(DinarClientData.getCompanyBalance(), symbol) : "";
 
-        int iconSize = 10;
-        int iconGap = 5;
-        int padX = 8;
-        int padY = 5;
-        int rowHeight = 11;
-        int rowGap = 1;
-
         int rows = hasCompany ? 3 : 2;
         int contentWidth = Math.max(textRenderer.getWidth(walletText),
                 Math.max(textRenderer.getWidth(bankText), hasCompany ? textRenderer.getWidth(companyText) : 0));
-        int panelWidth = padX * 2 + iconSize + iconGap + contentWidth;
-        int panelHeight = padY * 2 + rows * rowHeight + (rows - 1) * rowGap;
+        int panelWidth = PAD_X * 2 + ICON_W + ICON_GAP + contentWidth;
+        int panelHeight = PAD_Y * 2 + rows * ROW_HEIGHT + (rows - 1) * ROW_GAP;
 
         int x = MARGIN;
         int y = MARGIN;
@@ -76,22 +119,22 @@ public class DinarHudRenderer implements HudRenderCallback {
         context.fill(x - 1, y - 1, x + panelWidth + 1, y + panelHeight + 1, PANEL_BORDER);
         context.fill(x, y, x + panelWidth, y + panelHeight, PANEL_BG);
 
-        int textX = x + padX + iconSize + iconGap;
-        int iconX = x + padX;
-        int rowY = y + padY;
+        int textX = x + PAD_X + ICON_W + ICON_GAP;
+        int iconX = x + PAD_X;
+        int rowY = y + PAD_Y;
 
-        drawIcon(context, iconX, rowY, CASH_GREEN);
+        drawIcon(context, iconX, rowY, WALLET_COLOR, COIN_ICON);
         context.drawTextWithShadow(textRenderer, Text.literal(walletText), textX, rowY,
                 now - walletFlashMs < FLASH_MS ? 0xFFFFFFFF : WALLET_TEXT);
-        rowY += rowHeight + rowGap;
+        rowY += ROW_HEIGHT + ROW_GAP;
 
-        drawIcon(context, iconX, rowY, BANK_BLUE);
+        drawIcon(context, iconX, rowY, BANK_COLOR, BANK_ICON);
         context.drawTextWithShadow(textRenderer, Text.literal(bankText), textX, rowY,
                 now - bankFlashMs < FLASH_MS ? 0xFFFFFFFF : BANK_TEXT);
 
         if (hasCompany) {
-            rowY += rowHeight + rowGap;
-            drawIcon(context, iconX, rowY, COMPANY_GREEN);
+            rowY += ROW_HEIGHT + ROW_GAP;
+            drawIcon(context, iconX, rowY, COMPANY_COLOR, BRIEFCASE_ICON);
             context.drawTextWithShadow(textRenderer, Text.literal(companyText), textX, rowY, COMPANY_TEXT);
         }
 
@@ -108,7 +151,7 @@ public class DinarHudRenderer implements HudRenderCallback {
         for (MoneyGainEvent gain : gains) {
             float alpha = gain.alpha();
             if (alpha <= 0) continue;
-            int color = "Banque".equals(gain.label) ? BANK_BLUE : CASH_GREEN;
+            int color = "Banque".equals(gain.label) ? BANK_COLOR : WALLET_COLOR;
             color = withAlpha(color, alpha);
             String text = "+" + formatMoney(gain.amount, symbol);
             int textX = x;
@@ -125,11 +168,19 @@ public class DinarHudRenderer implements HudRenderCallback {
         return (argb & 0x00FFFFFF) | (a << 24);
     }
 
-    private void drawIcon(DrawContext context, int x, int y, int color) {
-        int s = 10;
-        context.fill(x + 2, y, x + s - 2, y + 1, color);
-        context.fill(x, y + 1, x + s, y + s - 1, color);
-        context.fill(x + 2, y + s, x + s - 2, y + s + 1, color);
+    private void drawIcon(DrawContext context, int x, int y, int color, String[] pattern) {
+        for (int r = 0; r < pattern.length; r++) {
+            String row = pattern[r];
+            int runStart = -1;
+            for (int c = 0; c <= row.length(); c++) {
+                boolean filled = c < row.length() && row.charAt(c) == 'X';
+                if (filled && runStart < 0) runStart = c;
+                if (!filled && runStart >= 0) {
+                    context.fill(x + runStart, y + r, x + c, y + r + 1, color);
+                    runStart = -1;
+                }
+            }
+        }
     }
 
     private String formatMoney(double value, String symbol) {

@@ -3,8 +3,10 @@ package fr.dinar.client;
 import fr.dinar.BalanceSyncPayload;
 import fr.dinar.DinarMod;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 
 public class DinarClient implements ClientModInitializer {
 
@@ -20,7 +22,25 @@ public class DinarClient implements ClientModInitializer {
                 double company = payload.data().getDouble("company");
                 boolean hasCompany = payload.data().getBoolean("hasCompany");
                 String symbol = payload.data().contains("symbol") ? payload.data().getString("symbol") : "D";
-                context.client().execute(() -> DinarClientData.update(wallet, bank, company, hasCompany, symbol));
+                context.client().execute(() -> {
+                    boolean wasInitialized = DinarClientData.isInitialized();
+                    double oldWallet = DinarClientData.getWalletBalance();
+                    double oldBank = DinarClientData.getBankBalance();
+                    DinarClientData.update(wallet, bank, company, hasCompany, symbol);
+                    if (wasInitialized) {
+                        ClientPlayerEntity player = context.client().player;
+                        if (player != null) {
+                            if (wallet > oldWallet) {
+                                player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.6f, 1.1f);
+                            } else if (wallet < oldWallet) {
+                                player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 0.6f, 0.7f);
+                            }
+                            if (bank > oldBank) {
+                                player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.6f, 1.3f);
+                            }
+                        }
+                    }
+                });
             } catch (Exception e) {
                 DinarMod.LOGGER.warn("[Dinar] Erreur réception packet balance.", e);
             }

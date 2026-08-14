@@ -279,6 +279,9 @@ public class EconomyManager {
         log(t, "RECEIVE", received, sender.displayName(), reason);
         notifyChanged(sender.uuid());
         notifyChanged(target.uuid());
+        DinarMod.rpLog.log("ECO", sender.displayName() + " → " + target.displayName() + " : "
+                + money(amount) + " (net " + money(received) + ")"
+                + (reason != null && !reason.isBlank() ? " («" + reason + "»)" : ""));
         return TransferResult.ok(tax, received);
     }
 
@@ -291,6 +294,7 @@ public class EconomyManager {
         entry.lastPaid = System.currentTimeMillis();
         log(a, "SALARY", net, "Salaire", null);
         notifyChanged(entry.uuid);
+        DinarMod.rpLog.log("SALAIRE", name + " a reçu " + money(net) + " (salaire)");
         ServerPlayerEntity p = online(entry.uuid);
         if (p != null) {
             p.sendMessage(Text.literal("§a[Salaire] §fVous avez reçu §e" + money(net) + " §f(salaire)."), false);
@@ -499,6 +503,7 @@ public class EconomyManager {
         bankBalances.put(uuid, round(current + amount));
         log(a, "BANK_DEPOSIT", amount, "Banque", null);
         notifyChanged(uuid);
+        DinarMod.rpLog.log("ECO", name + " a déposé " + money(amount) + " à la banque");
         return bankBalance(uuid);
     }
 
@@ -511,6 +516,7 @@ public class EconomyManager {
         a.balance = round(a.balance + amount);
         log(a, "BANK_WITHDRAW", amount, "Banque", null);
         notifyChanged(uuid);
+        DinarMod.rpLog.log("ECO", name + " a retiré " + money(amount) + " de la banque");
         return bankBalance(uuid);
     }
 
@@ -526,10 +532,12 @@ public class EconomyManager {
     public void applyBankInterests() {
         double rate = DinarMod.config.bankInterestRate;
         if (rate <= 0) return;
+        double total = 0;
         for (Map.Entry<UUID, Double> e : bankBalances.entrySet()) {
             double interest = round(e.getValue() * rate);
             if (interest > 0) {
                 e.setValue(round(e.getValue() + interest));
+                total += interest;
                 notifyChanged(e.getKey());
                 ServerPlayerEntity p = online(e.getKey());
                 if (p != null) {
@@ -538,6 +546,9 @@ public class EconomyManager {
                             + money(interest) + " §7(solde bancaire : §e" + money(bal) + "§7)"), false);
                 }
             }
+        }
+        if (total > 0) {
+            DinarMod.rpLog.log("BANQUE", "Intérêts bancaires versés : " + money(round(total)));
         }
     }
 
@@ -556,6 +567,7 @@ public class EconomyManager {
         loans.put(uuid, loan);
         log(a, "LOAN_TAKE", amount, "Prêt", null);
         notifyChanged(uuid);
+        DinarMod.rpLog.log("ECO", name + " a contracté un prêt de " + money(amount));
         return loan;
     }
 
@@ -572,6 +584,7 @@ public class EconomyManager {
         }
         log(a, "LOAN_REPAY", actual, "Prêt", null);
         notifyChanged(uuid);
+        DinarMod.rpLog.log("ECO", name + " a remboursé " + money(actual) + " de son prêt");
         return actual;
     }
 

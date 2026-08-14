@@ -56,6 +56,7 @@ public class GovernmentManager {
         this.leaderName = name;
         broadcast("§6§lCaliphat §r§7» §e" + name + " §7a été nommé §6Calife §7du serveur.");
         showTitle("§6§lNouveau Calife", "§e" + name, 10, 40, 10);
+        DinarMod.rpLog.log("GOUVERNEMENT", name + " a été nommé Calife du serveur");
     }
 
     public void removeLeader() {
@@ -64,6 +65,7 @@ public class GovernmentManager {
         leaderUuid = null;
         leaderName = null;
         broadcast("§6§lCaliphat §r§7» §c" + old + " §7n'est plus Calife.");
+        DinarMod.rpLog.log("GOUVERNEMENT", old + " n'est plus Calife");
     }
 
     public boolean isLeader(UUID uuid) {
@@ -78,6 +80,8 @@ public class GovernmentManager {
         Law law = new Law(nextLawId++, title, content, author.getUuid(), author.getGameProfile().getName());
         laws.add(law);
         broadcast("§6§lCaliphat §r§7» §e" + author.getGameProfile().getName() + " §apropose une loi §e» §f" + title);
+        DinarMod.rpLog.log("GOUVERNEMENT", author.getGameProfile().getName() + " propose la loi «"
+                + title + "» : " + content);
         return law;
     }
 
@@ -90,6 +94,7 @@ public class GovernmentManager {
         if (titleEnabled) {
             showTitle("§6§lLoi Promulguée", "§f" + title, 10, 60, 10);
         }
+        DinarMod.rpLog.log("GOUVERNEMENT", author.getGameProfile().getName() + " promulgue la loi «" + title + "»");
         return law;
     }
 
@@ -115,6 +120,7 @@ public class GovernmentManager {
         law.status = "REJECTED";
         law.decidedAt = System.currentTimeMillis();
         broadcast("§6§lCaliphat §r§7» §cLa loi §e» §f" + law.title + " §ca été rejetée.");
+        DinarMod.rpLog.log("GOUVERNEMENT", "La loi «" + law.title + "» a été rejetée");
     }
 
     // ------------------------------------------------------------------
@@ -128,6 +134,7 @@ public class GovernmentManager {
         VoteSession vs = new VoteSession(lawId, System.currentTimeMillis(), voteDurationSeconds, requiredVotes);
         activeVotes.put(lawId, vs);
         broadcast("§6§lCaliphat §r§7» §eVote ouvert §7pour la loi §f» " + law.title + " §7(/loi voter)");
+        DinarMod.rpLog.log("GOUVERNEMENT", "Vote ouvert pour la loi «" + law.title + "»");
         return true;
     }
 
@@ -184,6 +191,8 @@ public class GovernmentManager {
             if (titleEnabled) {
                 showTitle("§6§lLoi Adoptée", "§f" + law.title, 10, 60, 10);
             }
+            DinarMod.rpLog.log("GOUVERNEMENT", "La loi «" + law.title + "» a été adoptée ("
+                    + vs.getYes() + " OUI / " + vs.getNo() + " NON)");
         } else {
             law.status = "REJECTED";
             law.decidedAt = System.currentTimeMillis();
@@ -192,6 +201,8 @@ public class GovernmentManager {
             if (titleEnabled) {
                 showTitle("§c§lLoi Rejetée", "§f" + law.title, 10, 40, 10);
             }
+            DinarMod.rpLog.log("GOUVERNEMENT", "La loi «" + law.title + "» a été rejetée ("
+                    + vs.getYes() + " OUI / " + vs.getNo() + " NON)");
         }
     }
 
@@ -205,6 +216,7 @@ public class GovernmentManager {
         if (titleEnabled) {
             showTitle("§6§lDécret du Calife", "§f" + text, 10, 60, 10);
         }
+        DinarMod.rpLog.log("GOUVERNEMENT", author.getGameProfile().getName() + " publie le décret «" + text + "»");
     }
 
     public String getDecree() {

@@ -9,6 +9,11 @@ import fr.dinar.economy.ContractManager;
 import fr.dinar.economy.EconomyManager;
 import fr.dinar.economy.ShopManager;
 import fr.dinar.government.GovernmentManager;
+import fr.dinar.justice.JusticeManager;
+import fr.dinar.justice.PoliceManager;
+import fr.dinar.justice.PrisonManager;
+import fr.dinar.logs.RpLogManager;
+import fr.dinar.mail.MailManager;
 import fr.dinar.placeholder.DinarPlaceholders;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -23,6 +28,7 @@ import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +48,11 @@ public class DinarMod implements ModInitializer {
     public static CompanyManager companies;
     public static AuctionManager auctions;
     public static ContractManager contracts;
+    public static MailManager mail;
+    public static PoliceManager police;
+    public static JusticeManager justice;
+    public static PrisonManager prison;
+    public static RpLogManager rpLog;
 
     private final Map<UUID, Integer> lastSyncTick = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> dirtyPlayers = new ConcurrentHashMap<>();
@@ -65,6 +76,11 @@ public class DinarMod implements ModInitializer {
         companies = new CompanyManager();
         auctions = new AuctionManager();
         contracts = new ContractManager();
+        mail = new MailManager();
+        police = new PoliceManager();
+        justice = new JusticeManager();
+        prison = new PrisonManager();
+        rpLog = new RpLogManager();
 
         PayloadTypeRegistry.playS2C().register(BalanceSyncPayload.ID, BalanceSyncPayload.CODEC);
 
@@ -76,6 +92,11 @@ public class DinarMod implements ModInitializer {
             companies.load(dataDir);
             auctions.load(dataDir);
             contracts.load(dataDir);
+            mail.onServerStart(server);
+            police.onServerStart(server);
+            justice.onServerStart(server);
+            prison.onServerStart(server);
+            rpLog.onServerStart(server);
             LOGGER.info("[Dinar] Shops: {}, Entreprises: {}, Ventes: {}, Contrats: {}",
                     shops.getAll().size(), companies.getAll().size(),
                     auctions.getAll().size(), contracts.getAll().size());
@@ -88,12 +109,22 @@ public class DinarMod implements ModInitializer {
             companies.save(dataDir);
             auctions.save(dataDir);
             contracts.save(dataDir);
+            mail.onServerStop();
+            police.onServerStop();
+            justice.onServerStop();
+            prison.onServerStop();
+            rpLog.onServerStop();
             INSTANCE.lastSyncTick.clear();
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             economy.onPlayerJoin(handler.getPlayer());
             syncBalance(handler.getPlayer());
+            int unread = DinarMod.mail.unreadCount(handler.getPlayer().getUuid());
+            if (unread > 0) {
+                handler.getPlayer().sendMessage(Text.literal("§d✉ §fVous avez §e" + unread
+                        + " §flettre(s) non lue(s) §7(§f/courrier liste§7)"), false);
+            }
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             economy.getScoreboard().removePlayer(handler.getPlayer());
@@ -119,6 +150,7 @@ public class DinarMod implements ModInitializer {
         if (economy.getServer() == null) return;
         economy.tick(server);
         government.tick();
+        prison.tick(server);
 
         if (!dirtyPlayers.isEmpty()) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
