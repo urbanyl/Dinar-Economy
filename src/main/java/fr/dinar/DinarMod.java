@@ -1,5 +1,6 @@
 package fr.dinar;
 
+import fr.dinar.account.AccountManager;
 import fr.dinar.command.ModCommands;
 import fr.dinar.command.PlayerArgumentType;
 import fr.dinar.config.DinarConfig;
@@ -9,6 +10,7 @@ import fr.dinar.economy.ContractManager;
 import fr.dinar.economy.EconomyManager;
 import fr.dinar.economy.ShopManager;
 import fr.dinar.government.GovernmentManager;
+import fr.dinar.identity.IdentityManager;
 import fr.dinar.justice.JusticeManager;
 import fr.dinar.justice.PoliceManager;
 import fr.dinar.justice.PrisonManager;
@@ -18,14 +20,19 @@ import fr.dinar.placeholder.DinarPlaceholders;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -53,6 +60,9 @@ public class DinarMod implements ModInitializer {
     public static JusticeManager justice;
     public static PrisonManager prison;
     public static RpLogManager rpLog;
+    public static AccountManager accounts;
+    public static IdentityManager identity;
+    public static Item IDENTITY_CARD;
 
     private final Map<UUID, Integer> lastSyncTick = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> dirtyPlayers = new ConcurrentHashMap<>();
@@ -69,6 +79,8 @@ public class DinarMod implements ModInitializer {
         INSTANCE = this;
         ArgumentTypeRegistry.registerArgumentType(Identifier.of(MOD_ID, "player"),
                 PlayerArgumentType.class, ConstantArgumentSerializer.of(PlayerArgumentType::player));
+        IDENTITY_CARD = Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "identity_card"),
+                new Item(new Item.Settings()));
         config = DinarConfig.load();
         economy = new EconomyManager();
         government = new GovernmentManager();
@@ -81,6 +93,8 @@ public class DinarMod implements ModInitializer {
         justice = new JusticeManager();
         prison = new PrisonManager();
         rpLog = new RpLogManager();
+        accounts = new AccountManager();
+        identity = new IdentityManager();
 
         PayloadTypeRegistry.playS2C().register(BalanceSyncPayload.ID, BalanceSyncPayload.CODEC);
 
@@ -97,6 +111,8 @@ public class DinarMod implements ModInitializer {
             justice.onServerStart(server);
             prison.onServerStart(server);
             rpLog.onServerStart(server);
+            accounts.onServerStart(server);
+            identity.onServerStart(server);
             LOGGER.info("[Dinar] Shops: {}, Entreprises: {}, Ventes: {}, Contrats: {}",
                     shops.getAll().size(), companies.getAll().size(),
                     auctions.getAll().size(), contracts.getAll().size());
@@ -114,15 +130,28 @@ public class DinarMod implements ModInitializer {
             justice.onServerStop();
             prison.onServerStop();
             rpLog.onServerStop();
+            accounts.onServerStop();
+            identity.onServerStop();
             INSTANCE.lastSyncTick.clear();
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            economy.onPlayerJoin(handler.getPlayer());
-            syncBalance(handler.getPlayer());
-            int unread = DinarMod.mail.unreadCount(handler.getPlayer().getUuid());
+            ServerPlayerEntity player = handler.getPlayer();
+            economy.onPlayerJoin(player);
+            syncBalance(player);
+            UUID uuid = player.getUuid();
+            if (!DinarMod.accounts.hasAccount(uuid)) {
+                player.sendMessage(Text.literal("§6§lBienvenue §r§7sur le serveur RP !"), false);
+                player.sendMessage(Text.literal("§7Créez votre compte : §a/register <mot de passe> §7— "
+                        + "vous serez ensuite invité à définir votre identité RP."), false);
+            } else if (!DinarMod.accounts.isLoggedIn(uuid)) {
+                player.sendMessage(Text.literal("§6§lConnexion §r§7» §fIdentifiez-vous : §a/login <mot de passe>"), false);
+            } else if (DinarMod.identity.isComplete(uuid)) {
+                DinarMod.identity.giveCard(player);
+            }
+            int unread = DinarMod.mail.unreadCount(uuid);
             if (unread > 0) {
-                handler.getPlayer().sendMessage(Text.literal("§d✉ §fVous avez §e" + unread
+                player.sendMessage(Text.literal("§d✉ §fVous avez §e" + unread
                         + " §flettre(s) non lue(s) §7(§f/courrier liste§7)"), false);
             }
         });
@@ -130,6 +159,34 @@ public class DinarMod implements ModInitializer {
             economy.getScoreboard().removePlayer(handler.getPlayer());
             INSTANCE.lastSyncTick.remove(handler.getPlayer().getUuid());
             INSTANCE.dirtyPlayers.remove(handler.getPlayer().getUuid());
+        });
+
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            if (DinarMod.accounts.isLoggedIn(newPlayer.getUuid())
+                    && DinarMod.identity.isComplete(newPlayer.getUuid())) {
+                DinarMod.identity.giveCard(newPlayer);
+            }
+        });
+
+        ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
+            ServerPlayerEntity player = sender;
+            if (!DinarMod.accounts.isLoggedIn(player.getUuid())) {
+                player.sendMessage(Text.literal("§c🔒 Vous devez être connecté pour parler : §a/login <mot de passe>"), false);
+                return false;
+            }
+            String prefix = DinarMod.identity.formatName(player.getUuid());
+            if (prefix == null) {
+                player.sendMessage(Text.literal("§6Complétez votre identité pour parler : §f/identite prenom <prénom> "
+                        + "§7puis §f/identite metier <métier>"), false);
+                return false;
+            }
+            String formatted = prefix + " §8» §7" + message.getSignedContent();
+            MinecraftServer srv = player.getServer();
+            if (srv == null) return false;
+            for (ServerPlayerEntity p : srv.getPlayerManager().getPlayerList()) {
+                p.sendMessage(Text.literal(formatted), false);
+            }
+            return false;
         });
 
         CommandRegistrationCallback.EVENT.register(ModCommands::register);
@@ -151,6 +208,7 @@ public class DinarMod implements ModInitializer {
         economy.tick(server);
         government.tick();
         prison.tick(server);
+        accounts.tick(server);
 
         if (!dirtyPlayers.isEmpty()) {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {

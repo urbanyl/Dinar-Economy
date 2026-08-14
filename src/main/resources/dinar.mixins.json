@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "fr.dinar.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "MixinCommandManager"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

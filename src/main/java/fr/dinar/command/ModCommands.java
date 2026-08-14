@@ -32,6 +32,9 @@ public final class ModCommands {
         PoliceCommand.register(dispatcher);
         PrisonCommand.register(dispatcher);
         JournalCommand.register(dispatcher);
+        RegisterCommand.register(dispatcher);
+        IdentiteCommand.register(dispatcher);
+        CarteCommand.register(dispatcher);
     }
 
     private ModCommands() {}

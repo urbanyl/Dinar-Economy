@@ -6,6 +6,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 import java.util.List;
 import java.util.Locale;
@@ -22,49 +23,17 @@ public class DinarHudRenderer implements HudRenderCallback {
     private static final int COMPANY_TEXT = 0xFF7ED0FF;
     private static final int FLASH_MS = 250;
     private static final int MARGIN = 4;
-    private static final int ICON_W = 9;
-    private static final int ICON_H = 9;
+    private static final int ICON_W = 16;
+    private static final int ICON_H = 16;
     private static final int ICON_GAP = 6;
     private static final int PAD_X = 8;
-    private static final int PAD_Y = 6;
-    private static final int ROW_HEIGHT = 11;
-    private static final int ROW_GAP = 5;
+    private static final int PAD_Y = 5;
+    private static final int ROW_HEIGHT = 16;
+    private static final int ROW_GAP = 4;
 
-    private static final String[] COIN_ICON = {
-            "..XXXXX..",
-            ".XXXXXXX.",
-            "XXXXXXXXX",
-            "XXXXXXXXX",
-            "XXX.XXX.X",
-            "XXXXXXXXX",
-            "XXXXXXXXX",
-            ".XXXXXXX.",
-            "..XXXXX..",
-    };
-
-    private static final String[] BANK_ICON = {
-            ".XXXXXXX.",
-            "XXXXXXXXX",
-            ".XXXXXXX.",
-            ".X..X..X.",
-            ".X..X..X.",
-            ".X..X..X.",
-            ".XXXXXXX.",
-            ".XX...XX.",
-            ".XXXXXXX.",
-    };
-
-    private static final String[] BRIEFCASE_ICON = {
-            "...XXX...",
-            "...XXX...",
-            "XXXXXXXXX",
-            "X..XXX..X",
-            "X.......X",
-            "X.......X",
-            "X.......X",
-            "X.......X",
-            "XXXXXXXXX",
-    };
+    private static final Identifier WALLET_ICON = Identifier.of("dinar", "textures/hud/wallet.png");
+    private static final Identifier BANK_ICON = Identifier.of("dinar", "textures/hud/bank.png");
+    private static final Identifier COMPANY_ICON = Identifier.of("dinar", "textures/hud/company.png");
 
     private long lastWalletBits = Long.MIN_VALUE;
     private long lastBankBits = Long.MIN_VALUE;
@@ -123,19 +92,19 @@ public class DinarHudRenderer implements HudRenderCallback {
         int iconX = x + PAD_X;
         int rowY = y + PAD_Y;
 
-        drawIcon(context, iconX, rowY, WALLET_COLOR, COIN_ICON);
-        context.drawTextWithShadow(textRenderer, Text.literal(walletText), textX, rowY,
+        context.drawTexture(WALLET_ICON, iconX, rowY, 0, 0, ICON_W, ICON_H, ICON_W, ICON_H);
+        context.drawTextWithShadow(textRenderer, Text.literal(walletText), textX, rowY + 4,
                 now - walletFlashMs < FLASH_MS ? 0xFFFFFFFF : WALLET_TEXT);
         rowY += ROW_HEIGHT + ROW_GAP;
 
-        drawIcon(context, iconX, rowY, BANK_COLOR, BANK_ICON);
-        context.drawTextWithShadow(textRenderer, Text.literal(bankText), textX, rowY,
+        context.drawTexture(BANK_ICON, iconX, rowY, 0, 0, ICON_W, ICON_H, ICON_W, ICON_H);
+        context.drawTextWithShadow(textRenderer, Text.literal(bankText), textX, rowY + 4,
                 now - bankFlashMs < FLASH_MS ? 0xFFFFFFFF : BANK_TEXT);
 
         if (hasCompany) {
             rowY += ROW_HEIGHT + ROW_GAP;
-            drawIcon(context, iconX, rowY, COMPANY_COLOR, BRIEFCASE_ICON);
-            context.drawTextWithShadow(textRenderer, Text.literal(companyText), textX, rowY, COMPANY_TEXT);
+            context.drawTexture(COMPANY_ICON, iconX, rowY, 0, 0, ICON_W, ICON_H, ICON_W, ICON_H);
+            context.drawTextWithShadow(textRenderer, Text.literal(companyText), textX, rowY + 4, COMPANY_TEXT);
         }
 
         renderGainNotifications(context, textRenderer, symbol, x, y + panelHeight + 6);
@@ -166,21 +135,6 @@ public class DinarHudRenderer implements HudRenderCallback {
     private static int withAlpha(int argb, float alpha) {
         int a = (int) (alpha * 255) & 0xFF;
         return (argb & 0x00FFFFFF) | (a << 24);
-    }
-
-    private void drawIcon(DrawContext context, int x, int y, int color, String[] pattern) {
-        for (int r = 0; r < pattern.length; r++) {
-            String row = pattern[r];
-            int runStart = -1;
-            for (int c = 0; c <= row.length(); c++) {
-                boolean filled = c < row.length() && row.charAt(c) == 'X';
-                if (filled && runStart < 0) runStart = c;
-                if (!filled && runStart >= 0) {
-                    context.fill(x + runStart, y + r, x + c, y + r + 1, color);
-                    runStart = -1;
-                }
-            }
-        }
     }
 
     private String formatMoney(double value, String symbol) {
