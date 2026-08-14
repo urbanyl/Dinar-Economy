@@ -1,11 +1,12 @@
 # Dinar Economy
 
+![Dinar Economy](image-Photoroom.png)
+
 Mod d'économie et de caliphat pour **Minecraft 1.21.1 (Fabric)**.
 
 La monnaie du serveur est le **Dinar (D)**.
 
 ## Installation
-
 1. Installez **Fabric Loader** pour Minecraft 1.21.1.
 2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.2.0.jar` dans le dossier `mods/`.
 3. (Optionnel) **Text Placeholder API** de Patbox + **TAB** pour les placeholders.
