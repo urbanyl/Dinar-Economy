@@ -1,5 +1,3 @@
-# Dinar Economy
-
 ![Dinar Economy](image-Photoroom.png)
 
 Mod d'économie et de caliphat pour **Minecraft 1.21.1 (Fabric)**.
