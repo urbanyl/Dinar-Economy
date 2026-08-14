@@ -1,6 +1,7 @@
 package fr.dinar;
 
 import fr.dinar.command.ModCommands;
+import fr.dinar.command.PlayerArgumentType;
 import fr.dinar.config.DinarConfig;
 import fr.dinar.economy.AuctionManager;
 import fr.dinar.economy.CompanyManager;
@@ -10,6 +11,7 @@ import fr.dinar.economy.ShopManager;
 import fr.dinar.government.GovernmentManager;
 import fr.dinar.placeholder.DinarPlaceholders;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -17,9 +19,11 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +56,8 @@ public class DinarMod implements ModInitializer {
     @Override
     public void onInitialize() {
         INSTANCE = this;
+        ArgumentTypeRegistry.registerArgumentType(Identifier.of(MOD_ID, "player"),
+                PlayerArgumentType.class, ConstantArgumentSerializer.of(PlayerArgumentType::player));
         config = DinarConfig.load();
         economy = new EconomyManager();
         government = new GovernmentManager();
