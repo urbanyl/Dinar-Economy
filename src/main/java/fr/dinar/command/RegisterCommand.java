@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,7 +25,7 @@ public final class RegisterCommand {
     private static int register(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         String password = StringArgumentType.getString(ctx, "motdepasse");
@@ -33,8 +34,8 @@ public final class RegisterCommand {
             ctx.getSource().sendError(Text.literal(err));
             return 0;
         }
-        player.sendMessage(Text.literal("§a§lCOMPTE CRÉÉ §r§7» §fCompte enregistré pour §e"
-                + player.getGameProfile().getName() + "§f. Bienvenue !"), false);
+        player.sendMessage(DinarLang.text("§a§lCOMPTE CRÉÉ §r§7» §fCompte enregistré pour §e%s§f. Bienvenue !",
+                player.getGameProfile().getName()), false);
         afterLogin(player);
         return 1;
     }
@@ -42,7 +43,7 @@ public final class RegisterCommand {
     private static int login(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         String password = StringArgumentType.getString(ctx, "motdepasse");
@@ -51,22 +52,24 @@ public final class RegisterCommand {
             ctx.getSource().sendError(Text.literal(err));
             return 0;
         }
-        player.sendMessage(Text.literal("§a§lCONNECTÉ §r§7» §fBienvenue §e"
-                + player.getGameProfile().getName() + "§f."), false);
+        player.sendMessage(DinarLang.text("§a§lCONNECTÉ §r§7» §fBienvenue §e%s§f.",
+                player.getGameProfile().getName()), false);
         afterLogin(player);
         return 1;
     }
 
     private static void afterLogin(ServerPlayerEntity player) {
         if (!DinarMod.identity.isComplete(player.getUuid())) {
-            player.sendMessage(Text.literal("§6Votre identité n'est pas encore définie :"), false);
-            player.sendMessage(Text.literal("§f/identite prenom <prénom RP> §7puis §f/identite metier <métier>"), false);
+            player.sendMessage(DinarLang.text("§6Votre identité n'est pas encore définie :"), false);
+            player.sendMessage(DinarLang.text("§f/identite prenom <prénom RP> §7puis §f/identite metier <métier>"), false);
         } else {
             String err = DinarMod.identity.giveCard(player);
-            if (err == null) {
-                player.sendMessage(Text.literal("§6📛 §fVotre carte d'identité a été délivrée."), false);
-            } else {
+            if (err != null) {
                 player.sendMessage(Text.literal(err), false);
+            } else if (DinarMod.identity.hasCard(player)) {
+                player.sendMessage(DinarLang.text("§6📛 §fVous avez déjà votre carte d'identité."), false);
+            } else {
+                player.sendMessage(DinarLang.text("§6📛 §fVotre carte d'identité a été délivrée."), false);
             }
         }
     }
@@ -74,7 +77,7 @@ public final class RegisterCommand {
     private static int logout(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         String err = DinarMod.accounts.logout(player.getUuid());
@@ -82,7 +85,7 @@ public final class RegisterCommand {
             ctx.getSource().sendError(Text.literal(err));
             return 0;
         }
-        player.sendMessage(Text.literal("§7Vous êtes déconnecté. §f/login <mot de passe> §7pour revenir."), false);
+        player.sendMessage(DinarLang.text("§7Vous êtes déconnecté. §f/login <mot de passe> §7pour revenir."), false);
         return 1;
     }
 

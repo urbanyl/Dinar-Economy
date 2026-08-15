@@ -6,6 +6,7 @@ import fr.dinar.command.SalaryCommand;
 import fr.dinar.economy.Account;
 import fr.dinar.economy.EconomyManager;
 import fr.dinar.economy.SalaryEntry;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.component.type.ProfileComponent;
@@ -53,7 +54,7 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
     public static void open(ServerPlayerEntity admin) {
         admin.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                 (syncId, inv, player) -> new AdminPanelScreenHandler(syncId, inv, admin),
-                Text.literal("Panel Dinar").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
+                Text.literal(DinarLang.t("Panel Dinar")).setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
     }
 
     // ------------------------------------------------------------------
@@ -66,15 +67,15 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
         }
         EconomyManager eco = DinarMod.economy;
 
-        panelInv.setStack(0, named(Items.BARRIER, "§cFermer"));
-        panelInv.setStack(1, named(Items.ORANGE_DYE, "§6Taxe du joueur +1%"));
-        panelInv.setStack(2, named(Items.LIGHT_BLUE_DYE, "§bTaxe du joueur -1%"));
-        panelInv.setStack(3, named(Items.GREEN_DYE, "§aSalaire +100"));
-        panelInv.setStack(5, named(Items.RED_DYE, "§cSalaire -100"));
-        panelInv.setStack(6, named(Items.CLOCK, "§ePayer tous les salaires"));
-        panelInv.setStack(7, named(Items.COMPASS, "§7Recharger la liste"));
+        panelInv.setStack(0, named(Items.BARRIER, DinarLang.t("§cFermer")));
+        panelInv.setStack(1, named(Items.ORANGE_DYE, DinarLang.t("§6Taxe du joueur +1%")));
+        panelInv.setStack(2, named(Items.LIGHT_BLUE_DYE, DinarLang.t("§bTaxe du joueur -1%")));
+        panelInv.setStack(3, named(Items.GREEN_DYE, DinarLang.t("§aSalaire +100")));
+        panelInv.setStack(5, named(Items.RED_DYE, DinarLang.t("§cSalaire -100")));
+        panelInv.setStack(6, named(Items.CLOCK, DinarLang.t("§ePayer tous les salaires")));
+        panelInv.setStack(7, named(Items.COMPASS, DinarLang.t("§7Recharger la liste")));
 
-        ItemStack treasury = named(Items.GOLD_BLOCK, "§6Trésorerie");
+        ItemStack treasury = named(Items.GOLD_BLOCK, DinarLang.t("§6Trésorerie"));
         treasury.set(DataComponentTypes.LORE, new LoreComponent(List.of(
                 Text.literal("§7" + eco.money(eco.getTreasury())))));
         panelInv.setStack(4, treasury);
@@ -91,9 +92,9 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
         panelInv.setStack(16, action(Items.LAVA_BUCKET, "§4Mettre à 0", 0));
 
         int totalPages = Math.max(1, (int) Math.ceil(eco.accountCount() / (double) PLAYERS_PER_PAGE));
-        panelInv.setStack(18, named(Items.ARROW, "§ePage précédente"));
-        panelInv.setStack(22, named(Items.BOOK, "§7Page " + (page + 1) + "/" + totalPages));
-        panelInv.setStack(26, named(Items.ARROW, "§ePage suivante"));
+        panelInv.setStack(18, named(Items.ARROW, DinarLang.t("§ePage précédente")));
+        panelInv.setStack(22, named(Items.BOOK, DinarLang.t("§7Page %s/%s", page + 1, totalPages)));
+        panelInv.setStack(26, named(Items.ARROW, DinarLang.t("§ePage suivante")));
 
         List<Account> players = eco.baltop(page, PLAYERS_PER_PAGE);
         for (int i = 0; i < players.size(); i++) {
@@ -104,11 +105,11 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
     private ItemStack selectedInfo() {
         EconomyManager eco = DinarMod.economy;
         if (selected == null) {
-            return named(Items.PLAYER_HEAD, "§7Aucun joueur sélectionné");
+            return named(Items.PLAYER_HEAD, DinarLang.t("§7Aucun joueur sélectionné"));
         }
         Account a = eco.account(selected);
         if (a == null) {
-            return named(Items.PLAYER_HEAD, "§7Joueur introuvable");
+            return named(Items.PLAYER_HEAD, DinarLang.t("§7Joueur introuvable"));
         }
         ItemStack head = new ItemStack(Items.PLAYER_HEAD);
         if (a.uuid != null) {
@@ -118,12 +119,12 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
         Double tax = eco.getPersonalTax(a.uuid);
         SalaryEntry salary = eco.getSalary(a.uuid);
         head.set(DataComponentTypes.LORE, new LoreComponent(List.of(
-                Text.literal("§7Solde : §e" + eco.money(a.balance)),
-                Text.literal("§7Taxe : §e" + (tax != null ? (int) (tax * 100) + "%" : "aucune")),
-                Text.literal("§7Salaire : §e" + (salary != null
+                Text.literal(DinarLang.t("§7Solde : §e%s", eco.money(a.balance))),
+                Text.literal(DinarLang.t("§7Taxe : §e%s", tax != null ? (int) (tax * 100) + "%" : DinarLang.t("aucune"))),
+                Text.literal(DinarLang.t("§7Salaire : §e%s", salary != null
                         ? eco.money(salary.amount) + " / " + SalaryCommand.formatInterval(salary.intervalSeconds)
-                        : "aucun")),
-                Text.literal("§7Clic sur un joueur pour le sélectionner"))));
+                        : DinarLang.t("aucun"))),
+                Text.literal(DinarLang.t("§7Clic sur un joueur pour le sélectionner")))));
         head.set(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true);
         return head;
     }
@@ -131,7 +132,7 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
     private ItemStack playerHead(Account a) {
         EconomyManager eco = DinarMod.economy;
         boolean isSelected = selected != null && selected.equals(a.uuid);
-        String name = a.name != null ? a.name : "Inconnu";
+        String name = a.name != null ? a.name : DinarLang.t("Inconnu");
 
         ItemStack head = new ItemStack(Items.PLAYER_HEAD);
         if (a.uuid != null) {
@@ -144,12 +145,12 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
         SalaryEntry salary = eco.getSalary(a.uuid);
         double bal = a.balance;
         List<Text> lore = new ArrayList<>();
-        lore.add(Text.literal("§7Solde : §e" + eco.money(bal)));
-        lore.add(Text.literal("§7Taxe : §e" + (tax != null ? (int) (tax * 100) + "%" : "aucune")));
-        lore.add(Text.literal("§7Salaire : " + (salary != null
-                ? "§e" + eco.money(salary.amount) + " / " + SalaryCommand.formatInterval(salary.intervalSeconds)
-                : "§7aucun")));
-        lore.add(Text.literal(isSelected ? "§aJoueur sélectionné" : "§7Clic pour sélectionner"));
+        lore.add(Text.literal(DinarLang.t("§7Solde : §e%s", eco.money(bal))));
+        lore.add(Text.literal(DinarLang.t("§7Taxe : §e%s", tax != null ? (int) (tax * 100) + "%" : DinarLang.t("aucune"))));
+        lore.add(Text.literal(DinarLang.t("§7Salaire : §e%s", salary != null
+                ? eco.money(salary.amount) + " / " + SalaryCommand.formatInterval(salary.intervalSeconds)
+                : DinarLang.t("aucun"))));
+        lore.add(Text.literal(isSelected ? DinarLang.t("§aJoueur sélectionné") : DinarLang.t("§7Clic pour sélectionner")));
         head.set(DataComponentTypes.LORE, new LoreComponent(lore));
 
         if (isSelected) {
@@ -167,8 +168,8 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
     private static ItemStack action(Item item, String name, long value) {
         ItemStack s = named(item, name);
         s.set(DataComponentTypes.LORE, new LoreComponent(List.of(
-                Text.literal("§7Applique " + (value == 0 ? "le remise à zéro" : (value > 0 ? "+" : "") + value + " D")
-                        + " au joueur sélectionné"))));
+                Text.literal(DinarLang.t("§7Applique %s au joueur sélectionné",
+                        value == 0 ? DinarLang.t("la remise à zéro") : (value > 0 ? "+" : "") + value + " D")))));
         return s;
     }
 
@@ -201,16 +202,16 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
                 if (selected != null) {
                     double t = eco.hasPersonalTax(selected) ? eco.getPersonalTax(selected) : 0;
                     eco.setPersonalTax(selected, t + 0.01);
-                    admin.sendMessage(Text.literal("§aTaxe de " + eco.accountName(selected) + " : §e"
-                            + (int) (eco.getPersonalTax(selected) * 100) + "%"), false);
+                    admin.sendMessage(DinarLang.text("§aTaxe de %s : §e%s", eco.accountName(selected),
+                            (int) (eco.getPersonalTax(selected) * 100) + "%"), false);
                 }
             }
             case 2 -> {
                 if (selected != null) {
                     double t = eco.hasPersonalTax(selected) ? eco.getPersonalTax(selected) : 0;
                     eco.setPersonalTax(selected, t - 0.01);
-                    admin.sendMessage(Text.literal("§aTaxe de " + eco.accountName(selected) + " : §e"
-                            + (eco.hasPersonalTax(selected) ? (int) (eco.getPersonalTax(selected) * 100) + "%" : "aucune")), false);
+                    admin.sendMessage(DinarLang.text("§aTaxe de %s : §e%s", eco.accountName(selected),
+                            eco.hasPersonalTax(selected) ? (int) (eco.getPersonalTax(selected) * 100) + "%" : DinarLang.t("aucune")), false);
                 }
             }
             case 3 -> {
@@ -219,8 +220,8 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
                     double amount = s != null ? s.amount + 100 : 100;
                     long interval = s != null ? s.intervalSeconds : 3600;
                     eco.setSalary(selected, amount, interval);
-                    admin.sendMessage(Text.literal("§aSalaire de " + eco.accountName(selected) + " : §e"
-                            + eco.money(eco.getSalary(selected).amount)), false);
+                    admin.sendMessage(DinarLang.text("§aSalaire de %s : §e%s", eco.accountName(selected),
+                            eco.money(eco.getSalary(selected).amount)), false);
                 }
             }
             case 5 -> {
@@ -230,22 +231,22 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
                         double amount = s.amount - 100;
                         if (amount <= 0) {
                             eco.removeSalary(selected);
-                            admin.sendMessage(Text.literal("§aSalaire de " + eco.accountName(selected) + " supprimé."), false);
+                            admin.sendMessage(DinarLang.text("§aSalaire de %s supprimé.", eco.accountName(selected)), false);
                         } else {
                             eco.setSalary(selected, amount, s.intervalSeconds);
-                            admin.sendMessage(Text.literal("§aSalaire de " + eco.accountName(selected) + " : §e"
-                                    + eco.money(eco.getSalary(selected).amount)), false);
+                            admin.sendMessage(DinarLang.text("§aSalaire de %s : §e%s", eco.accountName(selected),
+                                    eco.money(eco.getSalary(selected).amount)), false);
                         }
                     } else {
-                        admin.sendMessage(Text.literal("§c" + eco.accountName(selected) + " n'a pas de salaire."), false);
+                        admin.sendMessage(DinarLang.text("§c%s n'a pas de salaire.", eco.accountName(selected)), false);
                     }
                 }
             }
             case 6 -> {
                 int n = eco.payAllSalaries();
-                admin.sendMessage(Text.literal("§a" + n + " salaire(s) payé(s)."), false);
+                admin.sendMessage(DinarLang.text("§a%s salaire(s) payé(s).", n), false);
             }
-            case 7 -> admin.sendMessage(Text.literal("§7Liste rechargée."), false);
+            case 7 -> admin.sendMessage(DinarLang.text("§7Liste rechargée."), false);
             case 9 -> applyToSelected(eco, 100);
             case 10 -> applyToSelected(eco, 1000);
             case 11 -> applyToSelected(eco, 10000);
@@ -256,7 +257,7 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
             case 16 -> {
                 if (selected != null) {
                     eco.setBalance(selected, eco.accountName(selected), 0);
-                    admin.sendMessage(Text.literal("§aSolde de " + eco.accountName(selected) + " remis à 0."), false);
+                    admin.sendMessage(DinarLang.text("§aSolde de %s remis à 0.", eco.accountName(selected)), false);
                 }
             }
             case 18 -> page = Math.max(0, page - 1);
@@ -280,7 +281,7 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
 
     private void applyToSelected(EconomyManager eco, long value) {
         if (selected == null) {
-            admin.sendMessage(Text.literal("§cSélectionnez d'abord un joueur."), false);
+            admin.sendMessage(DinarLang.text("§cSélectionnez d'abord un joueur."), false);
             return;
         }
         if (value > 0) {
@@ -288,7 +289,7 @@ public class AdminPanelScreenHandler extends GenericContainerScreenHandler {
         } else if (value < 0) {
             eco.take(selected, eco.accountName(selected), -value);
         }
-        admin.sendMessage(Text.literal("§a" + (value >= 0 ? "+" : "") + value + " D §f→ §e"
-                + eco.accountName(selected) + " §7(solde : §e" + eco.money(eco.balance(selected)) + "§7)"), false);
+        admin.sendMessage(DinarLang.text("§a%s D §f→ §e%s §7(solde : §e%s§7)",
+                (value >= 0 ? "+" : "") + value, eco.accountName(selected), eco.money(eco.balance(selected))), false);
     }
 }

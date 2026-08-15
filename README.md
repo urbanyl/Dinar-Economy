@@ -6,7 +6,7 @@ La monnaie du serveur est le **Dinar (D)**.
 
 ## Installation
 1. Installez **Fabric Loader** pour Minecraft 1.21.1.
-2. Déposez `fabric-api` (version 1.21.1) et `dinar-1.2.0.jar` dans le dossier `mods/`.
+2. Déposez `fabric-api` (version 1.21.1) et `dinar-3.2.jar` dans le dossier `mods/`.
 3. (Optionnel) **Text Placeholder API** de Patbox + **TAB** pour les placeholders.
 
 ## Commandes joueurs
@@ -90,6 +90,35 @@ La monnaie du serveur est le **Dinar (D)**.
 
 Types de contrats : `vente`, `service`, `location`, `pret`
 
+### Comptes & Identité RP
+
+| Commande | Description |
+| --- | --- |
+| `/register <mot de passe>` | Créer un compte (session) |
+| `/login <mot de passe>` | Se connecter |
+| `/logout` | Se déconnecter |
+| `/identite` | Voir votre identité RP |
+| `/identite prenom <prénom>` | Définir votre prénom RP |
+| `/identite metier <métier>` | Définir votre métier RP |
+| `/carte` | Obtenir votre carte d'identité |
+| `/carte donner <joueur>` | Remettre sa carte à un joueur (contrôle RP) |
+
+Connexion obligatoire pour jouer et parler dans le chat. Une fois l'identité
+complète (prénom + métier), le nom RP est affiché dans le chat et une annonce
+de bienvenue est diffusée. La carte d'identité est un item avec texture,
+unique et nominative (pseudo, prénom RP, n° d'identité).
+
+### Courrier
+
+| Commande | Description |
+| --- | --- |
+| `/courrier envoyer <joueur> <message>` | Envoyer une lettre |
+| `/courrier donner <joueur> <montant> <message>` | Envoyer une lettre avec de l'argent |
+| `/courrier liste` | Votre boîte aux lettres |
+| `/courrier lire <id>` | Lire une lettre (récupère l'argent) |
+| `/courrier supprimer <id>` | Supprimer une lettre |
+| `/courrier annuler <id>` | Annuler une lettre non lue |
+
 ### Caliphat (gouvernement)
 
 | Commande | Description |
@@ -142,6 +171,40 @@ Types de contrats : `vente`, `service`, `location`, `pret`
 - `/tax set <joueur> <pourcent>` — Taxe personnelle
 - `/tax remove|list|info <joueur>`
 
+#### Police, Justice & Prison
+
+- `/police ajouter <joueur>` — Nommer un policier
+- `/police retirer <joueur>` — Retirer un policier
+- `/police liste` — Liste des policiers
+- `/mandatdarret <joueur> <motif>` — Émettre un mandat d'arrêt
+- `/dossier voir <joueur>` — Casier judiciaire (délits, mandats, jugements)
+- `/dossier delit <joueur> <motif>` — Enregistrer un délit
+- `/dossier jugement <joueur> <délit> <peine>` — Rendre un jugement
+- `/dossier affaire <joueur> <motif>` — Ouvrir une affaire
+- `/dossier cloturer <id>` — Clôturer une affaire
+- `/dossier liste` — Affaires ouvertes
+- `/prison setpos` — Définir la position de la prison
+- `/prison incarcere <joueur> <minutes>` — Emprisonner
+- `/prison libere <joueur>` — Libérer
+- `/prison info` — Détenus et temps restants
+- `/journal [catégorie]` — Journal RP (ECO, SALAIRE, AMENDE, JUSTICE, POLICE…)
+
+#### Webhook Discord — `/dinar webhook`
+
+- `/dinar webhook set <url>` — Définir le webhook (URL `discord.com/api/webhooks/`)
+- `/dinar webhook enable|disable` — Activer/désactiver
+- `/dinar webhook titre <titre>` — Titre des messages (60 car. max)
+- `/dinar webhook test` — Message de test
+- `/dinar webhook info` — État du webhook
+
+Envoie les événements RP importants (police, amendes, justice, prison,
+courrier, économie) sur un canal Discord.
+
+## HUD client
+
+Affichage en jeu du portefeuille, du solde bancaire et du trésor d'entreprise
+(icônes textures), avec notifications sonores lors des transactions.
+
 ## Scoreboard
 
 Le scoreboard latéral affiche le solde de chaque joueur.
@@ -186,6 +249,7 @@ Options dans `config/dinar.json` :
 | `bankInterestIntervalTicks` | 72000 | Intervalle des intérêts (1h) |
 | `allowNegative` | false | Autoriser les soldes négatifs |
 | `suffixFormat` | true | Format K/M/B pour les montants |
+| `lang` | fr | Langue des messages : `fr` ou `en` |
 
 ## Données
 
@@ -195,7 +259,17 @@ Options dans `config/dinar.json` :
 - Auction House : `world/dinar/auctions.json`
 - Contrats : `world/dinar/contracts.json`
 - Gouvernement : `world/dinar/government.json`
+- Comptes & identités : `world/dinar/accounts.json`, `world/dinar/identity.json`
+- Courrier : `world/dinar/mail.json`
+- Police, justice & prison : `world/dinar/police.json`, `world/dinar/justice.json`, `world/dinar/prison.json`
+- Journal RP : `world/dinar/rp_log.json`
 - Sauvegarde automatique toutes les 5 minutes.
+
+## i18n
+
+Le mod est bilingue **français / anglais**. Les messages serveur sont
+centralisés dans `DinarLang` ; passez `"lang": "en"` dans `config/dinar.json`
+pour tout afficher en anglais (la langue est synchronisée au client pour le HUD).
 
 ## Compilation
 

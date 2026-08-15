@@ -8,6 +8,7 @@ import fr.dinar.DinarMod;
 import fr.dinar.economy.PlayerRef;
 import fr.dinar.justice.CaseEntry;
 import fr.dinar.justice.RecordEntry;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -68,7 +69,7 @@ public final class DossierCommand {
     private static int self(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         showFile(ctx, player.getUuid(), player.getName().getString());
@@ -88,12 +89,12 @@ public final class DossierCommand {
         long mandats = recs.stream().filter(r -> "MANDAT".equals(r.type)).count();
         long jugements = recs.stream().filter(r -> "JUGEMENT".equals(r.type)).count();
 
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lDossier judiciaire §r§7» §e" + name), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§7Casier : §c" + delits + " délit(s) §7| §e" + mandats
-                + " mandat(s) §7| §d" + jugements + " jugement(s)"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lDossier judiciaire §r§7» §e%s", name), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§7Casier : §c%s délit(s) §7| §e%s mandat(s) §7| §d%s jugement(s)",
+                delits, mandats, jugements), false);
 
         if (recs.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7Aucun antécédent."), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§7Aucun antécédent."), false);
         } else {
             for (RecordEntry r : recs) {
                 String line = "§8" + time(r.date) + " §7[" + typeColor(r.type) + "] §f" + r.detail
@@ -105,8 +106,8 @@ public final class DossierCommand {
 
         for (CaseEntry c : DinarMod.justice.getOpenCases()) {
             if (c.accusedUuid.equals(uuid.toString())) {
-                ctx.getSource().sendFeedback(() -> Text.literal("§bAffaire ouverte #" + c.id + " §7» §f"
-                        + c.motif + " §8(" + c.policeName + ")"), false);
+                ctx.getSource().sendFeedback(() -> DinarLang.text("§bAffaire ouverte #%s §7» §f%s §8(%s)",
+                        c.id, c.motif, c.policeName), false);
             }
         }
     }
@@ -114,36 +115,37 @@ public final class DossierCommand {
     private static int delit(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         PlayerRef ref = resolve(ctx, StringArgumentType.getString(ctx, "joueur"));
         if (ref == null) return 0;
         String motif = StringArgumentType.getString(ctx, "motif");
         DinarMod.justice.addOffense(officer, ref.uuid(), ref.displayName(), motif);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aDélit enregistré pour §e" + ref.displayName() + " §7: §f" + motif), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aDélit enregistré pour §e%s §7: §f%s",
+                ref.displayName(), motif), false);
         return 1;
     }
 
     public static int mandat(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         PlayerRef ref = resolve(ctx, StringArgumentType.getString(ctx, "joueur"));
         if (ref == null) return 0;
         String motif = StringArgumentType.getString(ctx, "motif");
         DinarMod.justice.issueWarrant(officer, ref.uuid(), ref.displayName(), motif);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aMandat d'arrêt émis contre §e" + ref.displayName()
-                + " §7: §f" + motif), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aMandat d'arrêt émis contre §e%s §7: §f%s",
+                ref.displayName(), motif), false);
         return 1;
     }
 
     private static int jugement(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         PlayerRef ref = resolve(ctx, StringArgumentType.getString(ctx, "joueur"));
@@ -151,58 +153,58 @@ public final class DossierCommand {
         String detail = StringArgumentType.getString(ctx, "detail");
         String peine = StringArgumentType.getString(ctx, "peine");
         DinarMod.justice.recordJudgment(officer, ref.uuid(), ref.displayName(), detail, peine);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aJugement rendu pour §e" + ref.displayName()
-                + " §7: §f" + detail + " §7→ §e" + peine), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aJugement rendu pour §e%s §7: §f%s §7→ §e%s",
+                ref.displayName(), detail, peine), false);
         return 1;
     }
 
     private static int affaire(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         PlayerRef ref = resolve(ctx, StringArgumentType.getString(ctx, "joueur"));
         if (ref == null) return 0;
         String motif = StringArgumentType.getString(ctx, "motif");
         DinarMod.justice.openCase(officer, ref.uuid(), ref.displayName(), motif);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aAffaire ouverte contre §e" + ref.displayName()), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aAffaire ouverte contre §e%s", ref.displayName()), false);
         return 1;
     }
 
     private static int cloturer(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         int id = IntegerArgumentType.getInteger(ctx, "id");
         CaseEntry c = DinarMod.justice.getCase(id);
         if (c == null) {
-            ctx.getSource().sendError(Text.literal("§cAffaire introuvable : §e#" + id));
+            ctx.getSource().sendError(DinarLang.text("§cAffaire introuvable : §e#%s", id));
             return 0;
         }
         DinarMod.justice.closeCase(officer, id);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aAffaire #" + id + " clôturée."), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aAffaire #%s clôturée.", id), false);
         return 1;
     }
 
     private static int liste(CommandContext<ServerCommandSource> ctx) {
         List<CaseEntry> cases = DinarMod.justice.getOpenCases();
         if (cases.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7Aucune affaire ouverte."), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§7Aucune affaire ouverte."), false);
             return 0;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lAffaires ouvertes §r§7(§f" + cases.size() + "§7)"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lAffaires ouvertes §r§7(§f%s§7)", cases.size()), false);
         for (CaseEntry c : cases) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§b#" + c.id + " §7» §e" + c.accusedName
-                    + " §7— §f" + c.motif + " §8(" + c.policeName + ")"), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§b#%s §7» §e%s §7— §f%s §8(%s)",
+                    c.id, c.accusedName, c.motif, c.policeName), false);
         }
         return 1;
     }
 
     private static int help(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lDossier §7» §f/dossier moi §7| §f/dossier voir <joueur> "
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lDossier §7» §f/dossier moi §7| §f/dossier voir <joueur> "
                 + "§7| §f/dossier delit <joueur> <motif> §7| §f/dossier mandat <joueur> <motif> "
                 + "§7| §f/dossier jugement <joueur> <délit> <peine> §7| §f/dossier affaire <joueur> <motif> "
                 + "§7| §f/dossier cloturer <id> §7| §f/dossier liste"), false);
@@ -212,7 +214,7 @@ public final class DossierCommand {
     private static PlayerRef resolve(CommandContext<ServerCommandSource> ctx, String name) {
         PlayerRef ref = DinarMod.economy.resolve(ctx.getSource(), name);
         if (ref == null) {
-            ctx.getSource().sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            ctx.getSource().sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return null;
         }
         return ref;

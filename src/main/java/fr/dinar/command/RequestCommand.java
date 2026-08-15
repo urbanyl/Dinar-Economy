@@ -10,6 +10,7 @@ import fr.dinar.DinarMod;
 import fr.dinar.economy.PlayerRef;
 import fr.dinar.economy.TransactionRequest;
 import fr.dinar.economy.TransferResult;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -18,7 +19,6 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
 import java.util.List;
-import java.util.UUID;
 
 public final class RequestCommand {
 
@@ -43,7 +43,7 @@ public final class RequestCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity sender = src.getPlayer();
         if (sender == null) {
-            src.sendError(Text.literal("§cCette commande doit être exécutée par un joueur."));
+            src.sendError(DinarLang.text("§cCette commande doit être exécutée par un joueur."));
             return 0;
         }
 
@@ -51,17 +51,17 @@ public final class RequestCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
 
         if (amount <= 0) {
-            src.sendError(Text.literal("§cLe montant doit être supérieur à zéro."));
+            src.sendError(DinarLang.text("§cLe montant doit être supérieur à zéro."));
             return 0;
         }
 
         PlayerRef target = DinarMod.economy.resolve(src, targetName);
         if (target == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + targetName));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", targetName));
             return 0;
         }
         if (target.uuid().equals(sender.getUuid())) {
-            src.sendError(Text.literal("§cVous ne pouvez pas vous demander de l'argent à vous-même."));
+            src.sendError(DinarLang.text("§cVous ne pouvez pas vous demander de l'argent à vous-même."));
             return 0;
         }
 
@@ -69,17 +69,20 @@ public final class RequestCommand {
         TransactionRequest req = DinarMod.economy.createRequest(senderRef, target, amount, message);
         String targetDisplay = target.displayName();
         String finalMessage = message;
-        src.sendFeedback(() -> Text.literal("§aDemande envoyée à §e" + targetDisplay + " §a: §e"
-                + DinarMod.economy.money(amount) + (finalMessage != null ? " §7(" + finalMessage + ")" : "")), false);
+        src.sendFeedback(() -> DinarLang.text("§aDemande envoyée à §e%s §a: §e%s%s",
+                targetDisplay, DinarMod.economy.money(amount),
+                finalMessage != null ? " §7(" + finalMessage + ")" : ""), false);
 
         ServerPlayerEntity targetOnline = target.online();
         if (targetOnline != null) {
+            String senderName = sender.getName().getString();
             targetOnline.sendMessage(Text.literal("")
-                    .append(Text.literal("§e" + sender.getName().getString() + " §6vous demande §e"
-                            + DinarMod.economy.money(amount) + (finalMessage != null ? " §7» " + finalMessage : "") + "\n"))
-                    .append(Text.literal("§a§n/dmd accept " + req.id + " §8§o(pour accepter)")
+                    .append(DinarLang.text("§e%s §6vous demande §e%s%s\n",
+                            senderName, DinarMod.economy.money(amount),
+                            finalMessage != null ? " §7» " + finalMessage : ""))
+                    .append(Text.literal(DinarLang.t("§a§n/dmd accept %s §8§o(pour accepter)", req.id))
                             .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/dmd accept " + req.id))))
-                    .append(Text.literal("   §c§n/dmd deny " + req.id + " §8§o(pour refuser)")
+                    .append(Text.literal(DinarLang.t("   §c§n/dmd deny %s §8§o(pour refuser)", req.id))
                             .setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/dmd deny " + req.id)))), false);
         }
         return 1;
@@ -89,18 +92,18 @@ public final class RequestCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity acceptor = src.getPlayer();
         if (acceptor == null) {
-            src.sendError(Text.literal("§cCette commande doit être exécutée par un joueur."));
+            src.sendError(DinarLang.text("§cCette commande doit être exécutée par un joueur."));
             return 0;
         }
 
         int id = IntegerArgumentType.getInteger(ctx, "id");
         TransactionRequest req = DinarMod.economy.getRequest(id);
         if (req == null) {
-            src.sendError(Text.literal("§cCette demande n'existe plus (expirée ou déjà traitée)."));
+            src.sendError(DinarLang.text("§cCette demande n'existe plus (expirée ou déjà traitée)."));
             return 0;
         }
         if (!req.target.equals(acceptor.getUuid())) {
-            src.sendError(Text.literal("§cCette demande ne vous est pas destinée."));
+            src.sendError(DinarLang.text("§cCette demande ne vous est pas destinée."));
             return 0;
         }
 
@@ -114,13 +117,15 @@ public final class RequestCommand {
 
         DinarMod.economy.removeRequest(id);
         String senderDisplay = sender.displayName();
-        src.sendFeedback(() -> Text.literal("§aVous avez envoyé §e" + DinarMod.economy.money(req.amount)
-                + " §aà §e" + senderDisplay + "§a." + (res.tax() > 0 ? " §7(Taxe §e" + DinarMod.economy.money(res.tax()) + "§7)" : "")), false);
+        src.sendFeedback(() -> DinarLang.text("§aVous avez envoyé §e%s §aà §e%s§a.%s",
+                DinarMod.economy.money(req.amount), senderDisplay,
+                res.tax() > 0 ? " §7(Taxe §e" + DinarMod.economy.money(res.tax()) + "§7)" : ""), false);
 
         ServerPlayerEntity requester = sender.online();
         if (requester != null) {
-            requester.sendMessage(Text.literal("§e" + acceptor.getName().getString() + " §aa accepté votre demande de §e"
-                    + DinarMod.economy.money(req.amount) + "§a."), false);
+            String acceptorName = acceptor.getName().getString();
+            requester.sendMessage(DinarLang.text("§e%s §aa accepté votre demande de §e%s§a.",
+                    acceptorName, DinarMod.economy.money(req.amount)), false);
         }
         return 1;
     }
@@ -129,29 +134,30 @@ public final class RequestCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity accepter = src.getPlayer();
         if (accepter == null) {
-            src.sendError(Text.literal("§cCette commande doit être exécutée par un joueur."));
+            src.sendError(DinarLang.text("§cCette commande doit être exécutée par un joueur."));
             return 0;
         }
 
         int id = IntegerArgumentType.getInteger(ctx, "id");
         TransactionRequest req = DinarMod.economy.getRequest(id);
         if (req == null) {
-            src.sendError(Text.literal("§cCette demande n'existe plus (expirée ou déjà traitée)."));
+            src.sendError(DinarLang.text("§cCette demande n'existe plus (expirée ou déjà traitée)."));
             return 0;
         }
         if (!req.target.equals(accepter.getUuid())) {
-            src.sendError(Text.literal("§cCette demande ne vous est pas destinée."));
+            src.sendError(DinarLang.text("§cCette demande ne vous est pas destinée."));
             return 0;
         }
 
         DinarMod.economy.removeRequest(id);
         String senderName = DinarMod.economy.resolveUuid(req.sender).displayName();
-        src.sendFeedback(() -> Text.literal("§cVous avez refusé la demande de §e" + senderName + "§c."), false);
+        src.sendFeedback(() -> DinarLang.text("§cVous avez refusé la demande de §e%s§c.", senderName), false);
 
         ServerPlayerEntity requester = DinarMod.economy.online(req.sender);
         if (requester != null) {
-            requester.sendMessage(Text.literal("§e" + accepter.getName().getString() + " §ca refusé votre demande de §e"
-                    + DinarMod.economy.money(req.amount) + "§c."), false);
+            String accepterName = accepter.getName().getString();
+            requester.sendMessage(DinarLang.text("§e%s §ca refusé votre demande de §e%s§c.",
+                    accepterName, DinarMod.economy.money(req.amount)), false);
         }
         return 1;
     }
@@ -160,25 +166,24 @@ public final class RequestCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
         if (player == null) {
-            src.sendError(Text.literal("§cCette commande doit être exécutée par un joueur."));
+            src.sendError(DinarLang.text("§cCette commande doit être exécutée par un joueur."));
             return 0;
         }
 
         List<TransactionRequest> reqs = DinarMod.economy.requestsFor(player.getUuid());
         if (reqs.isEmpty()) {
-            src.sendFeedback(() -> Text.literal("§7Aucune demande d'argent en attente."), false);
+            src.sendFeedback(() -> DinarLang.text("§7Aucune demande d'argent en attente."), false);
             return 0;
         }
-        src.sendFeedback(() -> Text.literal("§6§l=== Demandes d'argent en attente ==="), false);
+        src.sendFeedback(() -> DinarLang.text("§6§l=== Demandes d'argent en attente ==="), false);
         for (TransactionRequest r : reqs) {
             String other = DinarMod.economy.resolveUuid(player.getUuid().equals(r.sender) ? r.target : r.sender).displayName();
             boolean isTarget = r.target.equals(player.getUuid());
             long left = Math.max(0, (r.expiresAt - System.currentTimeMillis()) / 1000);
-            UUID finalOther = isTarget ? r.sender : r.target;
-            src.sendFeedback(() -> Text.literal("§7#" + r.id + " §e" + other
-                    + " §f» §e" + DinarMod.economy.money(r.amount)
-                    + (isTarget ? " §7[à accepter] §8(" + left + "s restantes)" : " §7[envoyée]")
-                    + (r.message != null ? " §7(" + r.message + ")" : "")), false);
+            src.sendFeedback(() -> DinarLang.text("§7#%s §e%s §f» §e%s%s%s",
+                    r.id, other, DinarMod.economy.money(r.amount),
+                    isTarget ? " §7[à accepter] §8(" + left + "s restantes)" : " §7[envoyée]",
+                    r.message != null ? " §7(" + r.message + ")" : ""), false);
         }
         return 1;
     }

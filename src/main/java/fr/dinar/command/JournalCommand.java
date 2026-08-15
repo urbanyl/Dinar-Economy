@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import fr.dinar.logs.RpLogManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -37,7 +38,7 @@ public final class JournalCommand {
                 ? DinarMod.rpLog.getPage(page, PER_PAGE)
                 : DinarMod.rpLog.getCategory(category, page, PER_PAGE);
         if (entries.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7Aucune entrée dans le journal."), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§7Aucune entrée dans le journal."), false);
             return 0;
         }
         String title = "§6§lJournal RP §r§7(page " + (page + 1) + ")"
@@ -47,7 +48,7 @@ public final class JournalCommand {
             String line = "§8" + time(e.time) + " §7[" + e.category + "] §f" + e.message;
             ctx.getSource().sendFeedback(() -> Text.literal(line), false);
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§7Catégories : §f"
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§7Catégories : §f"
                 + "ECO, SALAIRE, AMENDE, BANQUE, JUSTICE, POLICE, PRISON, MAIL, GOUVERNEMENT"), false);
         return 1;
     }

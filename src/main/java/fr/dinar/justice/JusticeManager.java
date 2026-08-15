@@ -5,10 +5,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import fr.dinar.logs.DiscordWebhook;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
@@ -103,81 +103,82 @@ public class JusticeManager {
     public void addOffense(ServerPlayerEntity officer, UUID accused, String accusedName, String motif) {
         addRecord(accused, "DELIT", motif, officer.getGameProfile().getName(), null);
         String officerName = officer.getGameProfile().getName();
-        DinarMod.rpLog.log("JUSTICE", officerName + " a enregistré un délit pour " + accusedName + " : " + motif);
+        DinarMod.rpLog.log("JUSTICE", DinarLang.t("%s a enregistré un délit pour %s : %s", officerName, accusedName, motif));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("⚖️ Délit enregistré")
-                .field("Suspect", accusedName)
-                .field("Motif", motif)
-                .field("Officier", officerName)
+                .title(DinarLang.t("⚖️ Délit enregistré"))
+                .field(DinarLang.t("Suspect"), accusedName)
+                .field(DinarLang.t("Motif"), motif)
+                .field(DinarLang.t("Officier"), officerName)
                 .color(0xE74C3C)
                 .footer("Dinar RP"));
         ServerPlayerEntity target = DinarMod.economy.online(accused);
         if (target != null) {
-            target.sendMessage(Text.literal("§c§lDÉLIT §r§7» §fUn délit a été enregistré contre vous : §e" + motif), false);
+            target.sendMessage(DinarLang.text("§c§lDÉLIT §r§7» §fUn délit a été enregistré contre vous : §e%s", motif), false);
         }
     }
 
     public void issueWarrant(ServerPlayerEntity officer, UUID accused, String accusedName, String motif) {
         addRecord(accused, "MANDAT", motif, officer.getGameProfile().getName(), null);
         String officerName = officer.getGameProfile().getName();
-        DinarMod.rpLog.log("JUSTICE", officerName + " a émis un mandat d'arrêt contre " + accusedName + " : " + motif);
+        DinarMod.rpLog.log("JUSTICE", DinarLang.t("%s a émis un mandat d'arrêt contre %s : %s", officerName, accusedName, motif));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("📜 Mandat d'arrêt")
-                .field("Suspect", accusedName)
-                .field("Motif", motif)
-                .field("Émis par", officerName)
+                .title(DinarLang.t("📜 Mandat d'arrêt"))
+                .field(DinarLang.t("Suspect"), accusedName)
+                .field(DinarLang.t("Motif"), motif)
+                .field(DinarLang.t("Émis par"), officerName)
                 .color(0xF39C12)
                 .footer("Dinar RP"));
-        DinarMod.government.broadcast("§c§lMANDAT D'ARRÊT §r§7» §e" + accusedName
-                + " §7est recherché pour : §f" + motif);
-        DinarMod.government.showTitle("§c§lMANDAT D'ARRÊT", "§e" + accusedName + " §7— §f" + motif, 10, 60, 10);
+        DinarMod.government.broadcast(DinarLang.t("§c§lMANDAT D'ARRÊT §r§7» §e%s §7est recherché pour : §f%s",
+                accusedName, motif));
+        DinarMod.government.showTitle(DinarLang.t("§c§lMANDAT D'ARRÊT"),
+                "§e" + accusedName + " §7— §f" + motif, 10, 60, 10);
     }
 
     public void recordJudgment(ServerPlayerEntity officer, UUID accused, String accusedName,
                                String detail, String penalty) {
         addRecord(accused, "JUGEMENT", detail, officer.getGameProfile().getName(), penalty);
         String officerName = officer.getGameProfile().getName();
-        DinarMod.rpLog.log("JUSTICE", officerName + " a rendu un jugement pour " + accusedName
-                + " : " + detail + " → " + penalty);
+        DinarMod.rpLog.log("JUSTICE", DinarLang.t("%s a rendu un jugement pour %s : %s → %s",
+                officerName, accusedName, detail, penalty));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("⚖️ Jugement rendu")
-                .field("Accusé", accusedName)
-                .field("Délit", detail)
-                .field("Peine", penalty)
-                .field("Juge", officerName)
+                .title(DinarLang.t("⚖️ Jugement rendu"))
+                .field(DinarLang.t("Accusé"), accusedName)
+                .field(DinarLang.t("Délit"), detail)
+                .field(DinarLang.t("Peine"), penalty)
+                .field(DinarLang.t("Juge"), officerName)
                 .color(0x9B59B6)
                 .footer("Dinar RP"));
         ServerPlayerEntity target = DinarMod.economy.online(accused);
         if (target != null) {
-            target.sendMessage(Text.literal("§d§lJUGEMENT §r§7» §f" + detail + " §7→ §e" + penalty), false);
+            target.sendMessage(DinarLang.text("§d§lJUGEMENT §r§7» §f%s §7→ §e%s", detail, penalty), false);
         }
     }
 
     public void openCase(ServerPlayerEntity officer, UUID accused, String accusedName, String motif) {
         CaseEntry c = createCase(accused, accusedName, motif, officer.getGameProfile().getName());
         String officerName = officer.getGameProfile().getName();
-        DinarMod.rpLog.log("JUSTICE", officerName + " a ouvert l'affaire #" + c.id
-                + " contre " + accusedName + " : " + motif);
+        DinarMod.rpLog.log("JUSTICE", DinarLang.t("%s a ouvert l'affaire #%s contre %s : %s",
+                officerName, c.id, accusedName, motif));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("🗂️ Affaire ouverte #" + c.id)
-                .field("Suspect", accusedName)
-                .field("Motif", motif)
-                .field("Officier", officerName)
+                .title(DinarLang.t("🗂️ Affaire ouverte #%s", c.id))
+                .field(DinarLang.t("Suspect"), accusedName)
+                .field(DinarLang.t("Motif"), motif)
+                .field(DinarLang.t("Officier"), officerName)
                 .color(0x3498DB)
                 .footer("Dinar RP"));
-        DinarMod.government.broadcast("§b§lAFFAIRE #" + c.id + " §r§7» §e" + accusedName
-                + " §7est soupçonné de : §f" + motif);
+        DinarMod.government.broadcast(DinarLang.t("§b§lAFFAIRE #%s §r§7» §e%s §7est soupçonné de : §f%s",
+                c.id, accusedName, motif));
     }
 
     public void closeCase(ServerPlayerEntity officer, int id) {
         CaseEntry c = removeCase(id);
         if (c == null) return;
         String officerName = officer.getGameProfile().getName();
-        DinarMod.rpLog.log("JUSTICE", officerName + " a clôturé l'affaire #" + id + " de " + c.accusedName);
+        DinarMod.rpLog.log("JUSTICE", DinarLang.t("%s a clôturé l'affaire #%s de %s", officerName, id, c.accusedName));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("✅ Affaire clôturée #" + id)
-                .field("Suspect", c.accusedName)
-                .field("Clôturé par", officerName)
+                .title(DinarLang.t("✅ Affaire clôturée #%s", id))
+                .field(DinarLang.t("Suspect"), c.accusedName)
+                .field(DinarLang.t("Clôturé par"), officerName)
                 .color(0x27AE60)
                 .footer("Dinar RP"));
     }

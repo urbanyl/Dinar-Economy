@@ -17,7 +17,6 @@ public class DinarHudRenderer implements HudRenderCallback {
     private static final int PANEL_BORDER = 0x33FFFFFF;
     private static final int WALLET_COLOR = 0xFFF2C94C;
     private static final int BANK_COLOR = 0xFF2ECC71;
-    private static final int COMPANY_COLOR = 0xFF56CCF2;
     private static final int WALLET_TEXT = 0xFFFFF4C9;
     private static final int BANK_TEXT = 0xFF8BFFB0;
     private static final int COMPANY_TEXT = 0xFF7ED0FF;
@@ -120,7 +119,7 @@ public class DinarHudRenderer implements HudRenderCallback {
         for (MoneyGainEvent gain : gains) {
             float alpha = gain.alpha();
             if (alpha <= 0) continue;
-            int color = "Banque".equals(gain.label) ? BANK_COLOR : WALLET_COLOR;
+            int color = "bank".equals(gain.label) ? BANK_COLOR : WALLET_COLOR;
             color = withAlpha(color, alpha);
             String text = "+" + formatMoney(gain.amount, symbol);
             int textX = x;

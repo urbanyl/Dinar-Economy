@@ -5,9 +5,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
@@ -39,10 +39,10 @@ public class MailManager {
     public String send(UUID senderUuid, String senderName, UUID targetUuid, String targetName,
                        String message, double attachedMoney) {
         if (senderUuid.equals(targetUuid)) {
-            return "§cImpossible de s'envoyer une lettre à soi-même.";
+            return DinarLang.t("§cImpossible de s'envoyer une lettre à soi-même.");
         }
         if (attachedMoney > 0 && !DinarMod.economy.deductFromBalance(senderUuid, senderName, attachedMoney)) {
-            return "§cSolde insuffisant pour joindre " + DinarMod.economy.money(attachedMoney) + ".";
+            return DinarLang.t("§cSolde insuffisant pour joindre %s.", DinarMod.economy.money(attachedMoney));
         }
         MailEntry entry = new MailEntry();
         entry.id = nextId++;
@@ -56,13 +56,13 @@ public class MailManager {
         entry.sentAt = System.currentTimeMillis();
         inboxes.computeIfAbsent(targetUuid, k -> new ArrayList<>()).add(entry);
 
-        DinarMod.rpLog.log("MAIL", senderName + " a envoyé une lettre à " + targetName
-                + (attachedMoney > 0 ? " avec " + DinarMod.economy.money(attachedMoney) : ""));
+        DinarMod.rpLog.log("MAIL", DinarLang.t("%s a envoyé une lettre à %s%s", senderName, targetName,
+                attachedMoney > 0 ? DinarLang.t(" avec %s", DinarMod.economy.money(attachedMoney)) : ""));
 
         ServerPlayerEntity target = DinarMod.economy.online(targetUuid);
         if (target != null) {
-            target.sendMessage(Text.literal("§d✉ §fVous avez reçu une lettre de §e" + senderName
-                    + " §7(§f/courrier liste§7)"), false);
+            target.sendMessage(DinarLang.text("§d✉ §fVous avez reçu une lettre de §e%s §7(§f/courrier liste§7)",
+                    senderName), false);
         }
         return null;
     }
@@ -86,13 +86,13 @@ public class MailManager {
 
     public String read(UUID uuid, int id) {
         MailEntry m = get(uuid, id);
-        if (m == null) return "§cLettre introuvable.";
+        if (m == null) return DinarLang.t("§cLettre introuvable.");
         m.read = true;
         if (m.attachedMoney > 0 && !m.moneyClaimed) {
             m.moneyClaimed = true;
             DinarMod.economy.add(uuid, DinarMod.economy.accountName(uuid), m.attachedMoney);
-            DinarMod.rpLog.log("MAIL", DinarMod.economy.accountName(uuid) + " a récupéré "
-                    + DinarMod.economy.money(m.attachedMoney) + " envoyés par " + m.senderName);
+            DinarMod.rpLog.log("MAIL", DinarLang.t("%s a récupéré %s envoyés par %s",
+                    DinarMod.economy.accountName(uuid), DinarMod.economy.money(m.attachedMoney), m.senderName));
         }
         return null;
     }
@@ -103,14 +103,14 @@ public class MailManager {
             if (m.id == id) {
                 if (m.attachedMoney > 0 && !m.moneyClaimed) {
                     DinarMod.economy.add(UUID.fromString(m.senderUuid), m.senderName, m.attachedMoney);
-                    DinarMod.rpLog.log("MAIL", m.senderName + " a récupéré "
-                            + DinarMod.economy.money(m.attachedMoney) + " (lettre refusée par " + m.receiverName + ")");
+                    DinarMod.rpLog.log("MAIL", DinarLang.t("%s a récupéré %s (lettre refusée par %s)",
+                            m.senderName, DinarMod.economy.money(m.attachedMoney), m.receiverName));
                 }
                 list.remove(m);
                 return null;
             }
         }
-        return "§cLettre introuvable.";
+        return DinarLang.t("§cLettre introuvable.");
     }
 
     public String cancel(UUID senderUuid, int id) {
@@ -119,15 +119,15 @@ public class MailManager {
                 if (m.id == id && m.senderUuid.equals(senderUuid.toString())) {
                     if (m.attachedMoney > 0 && !m.moneyClaimed) {
                         DinarMod.economy.add(senderUuid, DinarMod.economy.accountName(senderUuid), m.attachedMoney);
-                        DinarMod.rpLog.log("MAIL", m.senderName + " a annulé sa lettre à " + m.receiverName
-                                + " et récupéré " + DinarMod.economy.money(m.attachedMoney));
+                        DinarMod.rpLog.log("MAIL", DinarLang.t("%s a annulé sa lettre à %s et récupéré %s",
+                                m.senderName, m.receiverName, DinarMod.economy.money(m.attachedMoney)));
                     }
                     e.getValue().remove(m);
                     return null;
                 }
             }
         }
-        return "§cLettre introuvable ou déjà reçue.";
+        return DinarLang.t("§cLettre introuvable ou déjà reçue.");
     }
 
     public void save() {

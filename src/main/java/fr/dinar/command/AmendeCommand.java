@@ -6,10 +6,10 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import fr.dinar.DinarMod;
 import fr.dinar.economy.PlayerRef;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 
 public final class AmendeCommand {
 
@@ -31,19 +31,19 @@ public final class AmendeCommand {
         String reason = StringArgumentType.getString(ctx, "raison");
 
         if (amount <= 0) {
-            ctx.getSource().sendError(Text.literal("§cLe montant doit être positif."));
+            ctx.getSource().sendError(DinarLang.text("§cLe montant doit être positif."));
             return 0;
         }
 
         PlayerRef ref = DinarMod.economy.resolve(ctx.getSource(), targetName);
         if (ref == null) {
-            ctx.getSource().sendError(Text.literal("§cJoueur introuvable : §e" + targetName));
+            ctx.getSource().sendError(DinarLang.text("§cJoueur introuvable : §e%s", targetName));
             return 0;
         }
 
         if (!DinarMod.economy.deductFromBalance(ref.uuid(), ref.displayName(), amount)) {
-            ctx.getSource().sendError(Text.literal("§c" + ref.displayName() + " n'a pas assez d'argent (§e"
-                    + DinarMod.economy.money(DinarMod.economy.balance(ref.uuid())) + "§c)."));
+            ctx.getSource().sendError(DinarLang.text("§c%s n'a pas assez d'argent (§e%s§c).",
+                    ref.displayName(), DinarMod.economy.money(DinarMod.economy.balance(ref.uuid()))));
             return 0;
         }
 
@@ -55,13 +55,13 @@ public final class AmendeCommand {
         double finalAmount = amount;
         String finalReason = reason;
 
-        ctx.getSource().sendFeedback(() -> Text.literal("§aAmende de §e" + DinarMod.economy.money(finalAmount)
-                + " §7infligée à §e" + display + " §7pour : §f" + finalReason), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aAmende de §e%s §7infligée à §e%s §7pour : §f%s",
+                DinarMod.economy.money(finalAmount), display, finalReason), true);
 
         ServerPlayerEntity target = ref.online();
         if (target != null) {
-            target.sendMessage(Text.literal("§c§lAMENDE §r§7» §e" + issuer + " §cvous a infligé une amende de §e"
-                    + DinarMod.economy.money(finalAmount) + " §7pour : §f" + finalReason), false);
+            target.sendMessage(DinarLang.text("§c§lAMENDE §r§7» §e%s §cvous a infligé une amende de §e%s §7pour : §f%s",
+                    issuer, DinarMod.economy.money(finalAmount), finalReason), false);
         }
 
         String finalIssuer = issuer;
@@ -84,7 +84,7 @@ public final class AmendeCommand {
 
     private static int list(CommandContext<ServerCommandSource> ctx) {
         double treasury = DinarMod.economy.getTreasury();
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lTrésorerie §r§7» §e" + DinarMod.economy.money(treasury)), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lTrésorerie §r§7» §e%s", DinarMod.economy.money(treasury)), false);
         return 1;
     }
 

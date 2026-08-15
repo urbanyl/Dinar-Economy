@@ -5,10 +5,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
@@ -48,16 +48,16 @@ public class AccountManager {
 
     public String register(UUID uuid, String name, String password) {
         if (accounts.containsKey(uuid)) {
-            return "§cUn compte existe déjà. Utilisez §f/login <mot de passe>§c.";
+            return DinarLang.t("§cUn compte existe déjà. Utilisez §f/login <mot de passe>§c.");
         }
         if (password == null || password.length() < 4) {
-            return "§cMot de passe trop court (§f4 caractères minimum§c).";
+            return DinarLang.t("§cMot de passe trop court (§f4 caractères minimum§c).");
         }
         if (password.length() > 64) {
-            return "§cMot de passe trop long (§f64 caractères maximum§c).";
+            return DinarLang.t("§cMot de passe trop long (§f64 caractères maximum§c).");
         }
         if (password.matches(".*\\s.*")) {
-            return "§cLe mot de passe ne doit pas contenir d'espaces.";
+            return DinarLang.t("§cLe mot de passe ne doit pas contenir d'espaces.");
         }
         accounts.put(uuid, new Account(uuid, name, hash(password, uuid.toString())));
         sessions.put(uuid, System.currentTimeMillis());
@@ -68,10 +68,10 @@ public class AccountManager {
     public String login(UUID uuid, String password) {
         Account a = accounts.get(uuid);
         if (a == null) {
-            return "§cAucun compte. Créez-en un : §f/register <mot de passe>§c.";
+            return DinarLang.t("§cAucun compte. Créez-en un : §f/register <mot de passe>§c.");
         }
         if (password == null || !hash(password, uuid.toString()).equals(a.passwordHash)) {
-            return "§cMot de passe incorrect.";
+            return DinarLang.t("§cMot de passe incorrect.");
         }
         sessions.put(uuid, System.currentTimeMillis());
         return null;
@@ -79,7 +79,7 @@ public class AccountManager {
 
     public String logout(UUID uuid) {
         if (!sessions.containsKey(uuid)) {
-            return "§cVous n'êtes pas connecté.";
+            return DinarLang.t("§cVous n'êtes pas connecté.");
         }
         sessions.remove(uuid);
         return null;
@@ -117,7 +117,7 @@ public class AccountManager {
                                 p.getYaw(), p.getPitch());
                     }
                 }
-                p.sendMessage(Text.literal("§c🔒 Connectez-vous pour jouer : §a/login <mot de passe>"
+                p.sendMessage(DinarLang.text("§c🔒 Connectez-vous pour jouer : §a/login <mot de passe>"
                         + " §7ou créez un compte : §a/register <mot de passe>"), true);
             }
         }

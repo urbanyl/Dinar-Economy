@@ -10,10 +10,12 @@ import fr.dinar.economy.ContractManager;
 import fr.dinar.economy.EconomyManager;
 import fr.dinar.economy.ShopManager;
 import fr.dinar.government.GovernmentManager;
+import fr.dinar.identity.IdentityCardItem;
 import fr.dinar.identity.IdentityManager;
 import fr.dinar.justice.JusticeManager;
 import fr.dinar.justice.PoliceManager;
 import fr.dinar.justice.PrisonManager;
+import fr.dinar.lang.DinarLang;
 import fr.dinar.logs.RpLogManager;
 import fr.dinar.mail.MailManager;
 import fr.dinar.placeholder.DinarPlaceholders;
@@ -80,7 +82,7 @@ public class DinarMod implements ModInitializer {
         ArgumentTypeRegistry.registerArgumentType(Identifier.of(MOD_ID, "player"),
                 PlayerArgumentType.class, ConstantArgumentSerializer.of(PlayerArgumentType::player));
         IDENTITY_CARD = Registry.register(Registries.ITEM, Identifier.of(MOD_ID, "identity_card"),
-                new Item(new Item.Settings()));
+                new IdentityCardItem(new Item.Settings()));
         config = DinarConfig.load();
         economy = new EconomyManager();
         government = new GovernmentManager();
@@ -141,18 +143,17 @@ public class DinarMod implements ModInitializer {
             syncBalance(player);
             UUID uuid = player.getUuid();
             if (!DinarMod.accounts.hasAccount(uuid)) {
-                player.sendMessage(Text.literal("§6§lBienvenue §r§7sur le serveur RP !"), false);
-                player.sendMessage(Text.literal("§7Créez votre compte : §a/register <mot de passe> §7— "
+                player.sendMessage(DinarLang.text("§6§lBienvenue §r§7sur le serveur RP !"), false);
+                player.sendMessage(DinarLang.text("§7Créez votre compte : §a/register <mot de passe> §7— "
                         + "vous serez ensuite invité à définir votre identité RP."), false);
             } else if (!DinarMod.accounts.isLoggedIn(uuid)) {
-                player.sendMessage(Text.literal("§6§lConnexion §r§7» §fIdentifiez-vous : §a/login <mot de passe>"), false);
+                player.sendMessage(DinarLang.text("§6§lConnexion §r§7» §fIdentifiez-vous : §a/login <mot de passe>"), false);
             } else if (DinarMod.identity.isComplete(uuid)) {
                 DinarMod.identity.giveCard(player);
             }
             int unread = DinarMod.mail.unreadCount(uuid);
             if (unread > 0) {
-                player.sendMessage(Text.literal("§d✉ §fVous avez §e" + unread
-                        + " §flettre(s) non lue(s) §7(§f/courrier liste§7)"), false);
+                player.sendMessage(DinarLang.text("§d✉ §fVous avez §e%s §flettre(s) non lue(s) §7(§f/courrier liste§7)", unread), false);
             }
         });
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
@@ -171,12 +172,12 @@ public class DinarMod implements ModInitializer {
         ServerMessageEvents.ALLOW_CHAT_MESSAGE.register((message, sender, params) -> {
             ServerPlayerEntity player = sender;
             if (!DinarMod.accounts.isLoggedIn(player.getUuid())) {
-                player.sendMessage(Text.literal("§c🔒 Vous devez être connecté pour parler : §a/login <mot de passe>"), false);
+                player.sendMessage(DinarLang.text("§c🔒 Vous devez être connecté pour parler : §a/login <mot de passe>"), false);
                 return false;
             }
             String prefix = DinarMod.identity.formatName(player.getUuid());
             if (prefix == null) {
-                player.sendMessage(Text.literal("§6Complétez votre identité pour parler : §f/identite prenom <prénom> "
+                player.sendMessage(DinarLang.text("§6Complétez votre identité pour parler : §f/identite prenom <prénom> "
                         + "§7puis §f/identite metier <métier>"), false);
                 return false;
             }
@@ -246,6 +247,7 @@ public class DinarMod implements ModInitializer {
             nbt.putDouble("company", company);
             nbt.putBoolean("hasCompany", hasCompany);
             nbt.putString("symbol", symbol);
+            nbt.putString("lang", config != null && config.lang != null ? config.lang : "fr");
 
             ServerPlayNetworking.send(player, new BalanceSyncPayload(nbt));
 

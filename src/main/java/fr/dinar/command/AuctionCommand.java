@@ -7,10 +7,10 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import fr.dinar.DinarMod;
 import fr.dinar.economy.AuctionEntry;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 
 public final class AuctionCommand {
 
@@ -40,23 +40,23 @@ public final class AuctionCommand {
     private static int sell(CommandContext<ServerCommandSource> ctx, int quantity) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cCommande joueur uniquement."));
+            ctx.getSource().sendError(DinarLang.text("§cCommande joueur uniquement."));
             return 0;
         }
         double price = DoubleArgumentType.getDouble(ctx, "prix");
         if (price <= 0) {
-            ctx.getSource().sendError(Text.literal("§cLe prix doit être positif."));
+            ctx.getSource().sendError(DinarLang.text("§cLe prix doit être positif."));
             return 0;
         }
         if (player.getMainHandStack().isEmpty()) {
-            ctx.getSource().sendError(Text.literal("§cVous devez tenir un item en main."));
+            ctx.getSource().sendError(DinarLang.text("§cVous devez tenir un item en main."));
             return 0;
         }
         String itemName = player.getMainHandStack().getName().getString();
         AuctionEntry auction = DinarMod.auctions.create(player.getUuid(), player.getName().getString(),
                 itemName, quantity, price, 86400);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aMise en vente §e#" + auction.id + " §7: §f" + itemName
-                + " x" + quantity + " §7pour §e" + DinarMod.economy.money(price) + " §7(24h)"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aMise en vente §e#%s §7: §f%s x%s §7pour §e%s §7(24h)",
+                auction.id, itemName, quantity, DinarMod.economy.money(price)), false);
         return 1;
     }
 
@@ -67,21 +67,22 @@ public final class AuctionCommand {
     private static int buy(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cCommande joueur uniquement."));
+            ctx.getSource().sendError(DinarLang.text("§cCommande joueur uniquement."));
             return 0;
         }
         int id = IntegerArgumentType.getInteger(ctx, "id");
         AuctionEntry auction = DinarMod.auctions.get(id);
         if (auction == null || auction.isExpired()) {
-            ctx.getSource().sendError(Text.literal("§cVente introuvable ou expirée."));
+            ctx.getSource().sendError(DinarLang.text("§cVente introuvable ou expirée."));
             return 0;
         }
         if (auction.sellerUuid.equals(player.getUuid())) {
-            ctx.getSource().sendError(Text.literal("§cVous ne pouvez pas acheter votre propre vente."));
+            ctx.getSource().sendError(DinarLang.text("§cVous ne pouvez pas acheter votre propre vente."));
             return 0;
         }
         if (!DinarMod.economy.deductFromBalance(player.getUuid(), player.getName().getString(), auction.price)) {
-            ctx.getSource().sendError(Text.literal("§cSolde insuffisant. Il vous faut §e" + DinarMod.economy.money(auction.price)));
+            ctx.getSource().sendError(DinarLang.text("§cSolde insuffisant. Il vous faut §e%s",
+                    DinarMod.economy.money(auction.price)));
             return 0;
         }
         DinarMod.economy.add(auction.sellerUuid, auction.sellerName, auction.price);
@@ -94,16 +95,16 @@ public final class AuctionCommand {
         String sellerName = auction.sellerName;
         double price = auction.price;
         DinarMod.auctions.remove(id);
-        ctx.getSource().sendFeedback(() -> Text.literal("§aAchat §e#" + id + " §7: §f" + itemName + " x" + itemCount
-                + " §7à §e" + sellerName + " §7pour §e" + DinarMod.economy.money(price)), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aAchat §e#%s §7: §f%s x%s §7à §e%s §7pour §e%s",
+                id, itemName, itemCount, sellerName, DinarMod.economy.money(price)), false);
         ServerPlayerEntity seller = DinarMod.economy.online(auction.sellerUuid);
         if (seller != null) {
             String buyerName = player.getName().getString();
             int fCount = itemCount;
             double fPrice = price;
             String fItem = itemName;
-            seller.sendMessage(Text.literal("§e" + buyerName + " §aachète votre vente §e#" + id
-                    + " §7: §f" + fItem + " x" + fCount + " §7pour §e" + DinarMod.economy.money(fPrice)), false);
+            seller.sendMessage(DinarLang.text("§e%s §aachète votre vente §e#%s §7: §f%s x%s §7pour §e%s",
+                    buyerName, id, fItem, fCount, DinarMod.economy.money(fPrice)), false);
         }
         return 1;
     }
@@ -112,9 +113,9 @@ public final class AuctionCommand {
         var list = DinarMod.auctions.getPage(page - 1, 10);
         int pages = DinarMod.auctions.pageCount(10);
         int currentPage = Math.min(page, pages);
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§l═══ Auction House (§e" + currentPage + "/" + pages + "§6) ═══"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§l═══ Auction House (§e%s/%s§6) ═══", currentPage, pages), false);
         if (list.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7Aucune vente en cours."), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§7Aucune vente en cours."), false);
         }
         for (AuctionEntry a : list) {
             int id = a.id;
@@ -123,26 +124,25 @@ public final class AuctionCommand {
             double price = a.price;
             String seller = a.sellerName;
             long time = a.timeRemainingSeconds();
-            ctx.getSource().sendFeedback(() -> Text.literal("§e#" + id + " §f" + item + " x" + count
-                    + " §7par §e" + seller + " §7pour §e" + DinarMod.economy.money(price)
-                    + " §7(§e" + formatTime(time) + "§7)"), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§e#%s §f%s x%s §7par §e%s §7pour §e%s §7(§e%s§7)",
+                    id, item, count, seller, DinarMod.economy.money(price), formatTime(time)), false);
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§l════════════════════════"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§l════════════════════════"), false);
         return 1;
     }
 
     private static int cancel(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity player = ctx.getSource().getPlayer();
         if (player == null) {
-            ctx.getSource().sendError(Text.literal("§cCommande joueur uniquement."));
+            ctx.getSource().sendError(DinarLang.text("§cCommande joueur uniquement."));
             return 0;
         }
         int id = IntegerArgumentType.getInteger(ctx, "id");
         if (!DinarMod.auctions.cancel(id, player.getUuid())) {
-            ctx.getSource().sendError(Text.literal("§cImpossible d'annuler cette vente."));
+            ctx.getSource().sendError(DinarLang.text("§cImpossible d'annuler cette vente."));
             return 0;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§aVente §e#" + id + " §aannulée."), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aVente §e#%s §aannulée.", id), false);
         return 1;
     }
 
@@ -150,25 +150,25 @@ public final class AuctionCommand {
         int id = IntegerArgumentType.getInteger(ctx, "id");
         AuctionEntry auction = DinarMod.auctions.get(id);
         if (auction == null) {
-            ctx.getSource().sendError(Text.literal("§cVente introuvable : #" + id));
+            ctx.getSource().sendError(DinarLang.text("§cVente introuvable : #%s", id));
             return 0;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lVente #" + id), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§7Item : §e" + auction.itemName + " x" + auction.itemCount), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§7Vendeur : §e" + auction.sellerName), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§7Prix : §e" + DinarMod.economy.money(auction.price)), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§7Expire dans : §e" + formatTime(auction.timeRemainingSeconds())), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lVente #%s", id), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§7Item : §e%s x%s", auction.itemName, auction.itemCount), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§7Vendeur : §e%s", auction.sellerName), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§7Prix : §e%s", DinarMod.economy.money(auction.price)), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§7Expire dans : §e%s", formatTime(auction.timeRemainingSeconds())), false);
         return 1;
     }
 
     private static int help(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§l═══ Auction House ═══"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/ah sell <prix> [quantite]"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/ah buy <id>"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/ah list [page]"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/ah cancel <id>"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§e/ah info <id>"), false);
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§l════════════════════════"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§l═══ Auction House ═══"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§e/ah sell <prix> [quantite]"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§e/ah buy <id>"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§e/ah list [page]"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§e/ah cancel <id>"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§e/ah info <id>"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§l════════════════════════"), false);
         return 1;
     }
 

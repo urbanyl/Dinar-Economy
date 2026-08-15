@@ -1,10 +1,10 @@
 package fr.dinar.mixin;
 
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,7 +26,7 @@ public abstract class MixinCommandManager {
         String name = trimmed.split("[ \t]", 2)[0].toLowerCase(Locale.ROOT);
         if (name.equals("register") || name.equals("login")) return;
 
-        player.sendMessage(Text.literal("§c🔒 Connectez-vous d'abord : §a/register <mot de passe> §7ou §a/login <mot de passe>"), false);
+        player.sendMessage(DinarLang.text("§c🔒 Connectez-vous d'abord : §a/register <mot de passe> §7ou §a/login <mot de passe>"), false);
         ci.cancel();
     }
 }

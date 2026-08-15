@@ -7,11 +7,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.dinar.DinarMod;
 import fr.dinar.config.DinarConfig;
+import fr.dinar.lang.DinarLang;
 import fr.dinar.scoreboard.BalanceScoreboard;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import net.minecraft.util.WorldSavePath;
 
 import java.io.IOException;
@@ -260,16 +260,16 @@ public class EconomyManager {
 
     public TransferResult transfer(PlayerRef sender, PlayerRef target, double amount, String reason) {
         if (amount <= 0) {
-            return TransferResult.fail("Le montant doit être positif.");
+            return TransferResult.fail(DinarLang.t("Le montant doit être positif."));
         }
         if (sender.uuid().equals(target.uuid())) {
-            return TransferResult.fail("Impossible de se payer soi-même.");
+            return TransferResult.fail(DinarLang.t("Impossible de se payer soi-même."));
         }
         double tax = round(amount * effectiveTax(target.uuid()));
         double received = round(amount - tax);
         Account s = getOrCreate(sender.uuid(), sender.displayName());
         if (!DinarMod.config.allowNegative && s.balance < amount) {
-            return TransferResult.fail("Solde insuffisant.");
+            return TransferResult.fail(DinarLang.t("Solde insuffisant."));
         }
         s.balance = round(s.balance - amount);
         Account t = getOrCreate(target.uuid(), target.displayName());
@@ -279,9 +279,9 @@ public class EconomyManager {
         log(t, "RECEIVE", received, sender.displayName(), reason);
         notifyChanged(sender.uuid());
         notifyChanged(target.uuid());
-        DinarMod.rpLog.log("ECO", sender.displayName() + " → " + target.displayName() + " : "
-                + money(amount) + " (net " + money(received) + ")"
-                + (reason != null && !reason.isBlank() ? " («" + reason + "»)" : ""));
+        DinarMod.rpLog.log("ECO", DinarLang.t("%s → %s : %s (net %s)%s",
+                sender.displayName(), target.displayName(), money(amount), money(received),
+                reason != null && !reason.isBlank() ? DinarLang.t(" («%s»)", reason) : ""));
         return TransferResult.ok(tax, received);
     }
 
@@ -294,10 +294,10 @@ public class EconomyManager {
         entry.lastPaid = System.currentTimeMillis();
         log(a, "SALARY", net, "Salaire", null);
         notifyChanged(entry.uuid);
-        DinarMod.rpLog.log("SALAIRE", name + " a reçu " + money(net) + " (salaire)");
+        DinarMod.rpLog.log("SALAIRE", DinarLang.t("%s a reçu %s (salaire)", name, money(net)));
         ServerPlayerEntity p = online(entry.uuid);
         if (p != null) {
-            p.sendMessage(Text.literal("§a[Salaire] §fVous avez reçu §e" + money(net) + " §f(salaire)."), false);
+            p.sendMessage(DinarLang.text("§a[Salaire] §fVous avez reçu §e%s §f(salaire).", money(net)), false);
         }
     }
 
@@ -503,7 +503,7 @@ public class EconomyManager {
         bankBalances.put(uuid, round(current + amount));
         log(a, "BANK_DEPOSIT", amount, "Banque", null);
         notifyChanged(uuid);
-        DinarMod.rpLog.log("ECO", name + " a déposé " + money(amount) + " à la banque");
+        DinarMod.rpLog.log("ECO", DinarLang.t("%s a déposé %s à la banque", name, money(amount)));
         return bankBalance(uuid);
     }
 
@@ -516,7 +516,7 @@ public class EconomyManager {
         a.balance = round(a.balance + amount);
         log(a, "BANK_WITHDRAW", amount, "Banque", null);
         notifyChanged(uuid);
-        DinarMod.rpLog.log("ECO", name + " a retiré " + money(amount) + " de la banque");
+        DinarMod.rpLog.log("ECO", DinarLang.t("%s a retiré %s de la banque", name, money(amount)));
         return bankBalance(uuid);
     }
 
@@ -542,13 +542,13 @@ public class EconomyManager {
                 ServerPlayerEntity p = online(e.getKey());
                 if (p != null) {
                     double bal = e.getValue();
-                    p.sendMessage(Text.literal("§a[Banque] §fIntérêts : §e+"
-                            + money(interest) + " §7(solde bancaire : §e" + money(bal) + "§7)"), false);
+                    p.sendMessage(DinarLang.text("§a[Banque] §fIntérêts : §e+%s §7(solde bancaire : §e%s§7)",
+                            money(interest), money(bal)), false);
                 }
             }
         }
         if (total > 0) {
-            DinarMod.rpLog.log("BANQUE", "Intérêts bancaires versés : " + money(round(total)));
+            DinarMod.rpLog.log("BANQUE", DinarLang.t("Intérêts bancaires versés : %s", money(round(total))));
         }
     }
 
@@ -567,7 +567,7 @@ public class EconomyManager {
         loans.put(uuid, loan);
         log(a, "LOAN_TAKE", amount, "Prêt", null);
         notifyChanged(uuid);
-        DinarMod.rpLog.log("ECO", name + " a contracté un prêt de " + money(amount));
+        DinarMod.rpLog.log("ECO", DinarLang.t("%s a contracté un prêt de %s", name, money(amount)));
         return loan;
     }
 
@@ -584,7 +584,7 @@ public class EconomyManager {
         }
         log(a, "LOAN_REPAY", actual, "Prêt", null);
         notifyChanged(uuid);
-        DinarMod.rpLog.log("ECO", name + " a remboursé " + money(actual) + " de son prêt");
+        DinarMod.rpLog.log("ECO", DinarLang.t("%s a remboursé %s de son prêt", name, money(actual)));
         return actual;
     }
 

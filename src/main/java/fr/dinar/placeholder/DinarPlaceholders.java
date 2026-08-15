@@ -3,6 +3,7 @@ package fr.dinar.placeholder;
 import eu.pb4.placeholders.api.PlaceholderResult;
 import eu.pb4.placeholders.api.Placeholders;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -47,14 +48,14 @@ public final class DinarPlaceholders {
 
         Placeholders.register(Identifier.of("dinar", "leader"), (ctx, arg) ->
                 PlaceholderResult.value(Text.literal(DinarMod.government.hasLeader()
-                        ? DinarMod.government.getLeaderName() : "Aucun")));
+                        ? DinarMod.government.getLeaderName() : DinarLang.t("Aucun"))));
 
         Placeholders.register(Identifier.of("dinar", "laws"), (ctx, arg) ->
                 PlaceholderResult.value(Text.literal(String.valueOf(DinarMod.government.getAdoptedLawCount()))));
 
         Placeholders.register(Identifier.of("dinar", "decree"), (ctx, arg) -> {
             String d = DinarMod.government.getDecree();
-            return PlaceholderResult.value(Text.literal(d != null && !d.isEmpty() ? d : "Aucun"));
+            return PlaceholderResult.value(Text.literal(d != null && !d.isEmpty() ? d : DinarLang.t("Aucun")));
         });
 
         Placeholders.register(Identifier.of("dinar", "is_leader"), (ctx, arg) -> {

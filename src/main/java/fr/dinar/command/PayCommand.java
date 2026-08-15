@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.dinar.DinarMod;
 import fr.dinar.economy.PlayerRef;
 import fr.dinar.economy.TransferResult;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -30,7 +31,7 @@ public final class PayCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity sender = src.getPlayer();
         if (sender == null) {
-            src.sendError(Text.literal("§cCette commande doit être exécutée par un joueur."));
+            src.sendError(DinarLang.text("§cCette commande doit être exécutée par un joueur."));
             return 0;
         }
 
@@ -38,13 +39,13 @@ public final class PayCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
 
         if (amount <= 0) {
-            src.sendError(Text.literal("§cLe montant doit être supérieur à zéro."));
+            src.sendError(DinarLang.text("§cLe montant doit être supérieur à zéro."));
             return 0;
         }
 
         PlayerRef target = DinarMod.economy.resolve(src, targetName);
         if (target == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + targetName));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", targetName));
             return 0;
         }
 
@@ -58,17 +59,17 @@ public final class PayCommand {
         String targetDisplay = target.displayName();
         double sent = amount;
         double tax = res.tax();
-        src.sendFeedback(() -> Text.literal("§aVous avez envoyé §e" + DinarMod.economy.money(sent)
-                + " §aà §e" + targetDisplay + "§a." + taxLine(tax, "payé")), false);
+        src.sendFeedback(() -> DinarLang.text("§aVous avez envoyé §e%s §aà §e%s§a.%s",
+                DinarMod.economy.money(sent), targetDisplay, taxLine(tax, "payé")), false);
 
         ServerPlayerEntity targetOnline = target.online();
         if (targetOnline != null) {
             double received = res.received();
             String senderName = sender.getName().getString();
             String finalReason = reason;
-            targetOnline.sendMessage(Text.literal("§e" + senderName + " §avous a envoyé §e"
-                    + DinarMod.economy.money(received) + taxLine(tax, "reçue")
-                    + (finalReason != null ? " §7» " + finalReason : "")), false);
+            targetOnline.sendMessage(DinarLang.text("§e%s §avous a envoyé §e%s%s%s",
+                    senderName, DinarMod.economy.money(received), taxLine(tax, "reçue"),
+                    finalReason != null ? " §7» " + finalReason : ""), false);
         }
         return 1;
     }

@@ -5,9 +5,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import fr.dinar.DinarMod;
 import fr.dinar.economy.Account;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 
 import java.util.List;
 
@@ -28,13 +28,13 @@ public final class BaltopCommand {
         int start = (page - 1) * PER_PAGE;
         List<Account> list = DinarMod.economy.baltop(page - 1, PER_PAGE);
         int finalPage = page;
-        src.sendFeedback(() -> Text.literal("§6§l=== Classement des comptes (§e" + finalPage + "/" + pages + "§6) ==="), false);
+        src.sendFeedback(() -> DinarLang.text("§6§l=== Classement des comptes (§e%s/%s§6) ===", finalPage, pages), false);
         for (int i = 0; i < list.size(); i++) {
             Account a = list.get(i);
             int rank = start + i + 1;
             double bal = a.balance;
             String name = a.name != null ? a.name : "Inconnu";
-            src.sendFeedback(() -> Text.literal("§8#" + rank + " §e" + name + " §7- §e" + DinarMod.economy.money(bal)), false);
+            src.sendFeedback(() -> DinarLang.text("§8#%s §e%s §7- §e%s", rank, name, DinarMod.economy.money(bal)), false);
         }
         return 1;
     }

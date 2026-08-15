@@ -11,6 +11,7 @@ import fr.dinar.economy.Account;
 import fr.dinar.economy.PlayerRef;
 import fr.dinar.economy.TransactionEntry;
 import fr.dinar.gui.AdminPanelScreenHandler;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -58,19 +59,19 @@ public final class EcoCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
         PlayerRef ref = DinarMod.economy.resolve(src, name);
         if (ref == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         double newBal = DinarMod.economy.add(ref.uuid(), ref.displayName(), amount);
         double finalAmount = amount;
         String display = ref.displayName();
         double bal = newBal;
-        src.sendFeedback(() -> Text.literal("§a" + display + " §freçoit §e" + DinarMod.economy.money(finalAmount)
-                + " §f→ nouveau solde : §e" + DinarMod.economy.money(bal)), true);
+        src.sendFeedback(() -> DinarLang.text("§a%s §freçoit §e%s §f→ nouveau solde : §e%s",
+                display, DinarMod.economy.money(finalAmount), DinarMod.economy.money(bal)), true);
         ServerPlayerEntity p = ref.online();
         if (p != null) {
-            p.sendMessage(Text.literal("§aUn administrateur vous a donné §e" + DinarMod.economy.money(finalAmount)
-                    + "§a. Nouveau solde : §e" + DinarMod.economy.money(bal)), false);
+            p.sendMessage(DinarLang.text("§aUn administrateur vous a donné §e%s§a. Nouveau solde : §e%s",
+                    DinarMod.economy.money(finalAmount), DinarMod.economy.money(bal)), false);
         }
         return 1;
     }
@@ -81,19 +82,19 @@ public final class EcoCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
         PlayerRef ref = DinarMod.economy.resolve(src, name);
         if (ref == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         double actual = DinarMod.economy.take(ref.uuid(), ref.displayName(), amount);
         double bal = DinarMod.economy.balance(ref.uuid());
         double finalAmount = actual;
         String display = ref.displayName();
-        src.sendFeedback(() -> Text.literal("§c" + display + " §fperd §e" + DinarMod.economy.money(finalAmount)
-                + " §f→ nouveau solde : §e" + DinarMod.economy.money(bal)), true);
+        src.sendFeedback(() -> DinarLang.text("§c%s §fperd §e%s §f→ nouveau solde : §e%s",
+                display, DinarMod.economy.money(finalAmount), DinarMod.economy.money(bal)), true);
         ServerPlayerEntity p = ref.online();
         if (p != null) {
-            p.sendMessage(Text.literal("§cUn administrateur vous a retiré §e" + DinarMod.economy.money(finalAmount)
-                    + "§c. Nouveau solde : §e" + DinarMod.economy.money(bal)), false);
+            p.sendMessage(DinarLang.text("§cUn administrateur vous a retiré §e%s§c. Nouveau solde : §e%s",
+                    DinarMod.economy.money(finalAmount), DinarMod.economy.money(bal)), false);
         }
         return 1;
     }
@@ -104,16 +105,18 @@ public final class EcoCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
         PlayerRef ref = DinarMod.economy.resolve(src, name);
         if (ref == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         DinarMod.economy.setBalance(ref.uuid(), ref.displayName(), amount);
         double finalAmount = amount;
         String display = ref.displayName();
-        src.sendFeedback(() -> Text.literal("§aSolde de §e" + display + " §adéfini à §e" + DinarMod.economy.money(finalAmount)), true);
+        src.sendFeedback(() -> DinarLang.text("§aSolde de §e%s §adéfini à §e%s",
+                display, DinarMod.economy.money(finalAmount)), true);
         ServerPlayerEntity p = ref.online();
         if (p != null) {
-            p.sendMessage(Text.literal("§aUn administrateur a défini votre solde à §e" + DinarMod.economy.money(finalAmount)), false);
+            p.sendMessage(DinarLang.text("§aUn administrateur a défini votre solde à §e%s",
+                    DinarMod.economy.money(finalAmount)), false);
         }
         return 1;
     }
@@ -123,18 +126,18 @@ public final class EcoCommand {
         String name = StringArgumentType.getString(ctx, "joueur");
         PlayerRef ref = DinarMod.economy.resolve(src, name);
         if (ref == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         DinarMod.economy.setBalance(ref.uuid(), ref.displayName(), DinarMod.config.startingBalance);
         String display = ref.displayName();
-        src.sendFeedback(() -> Text.literal("§aSolde de §e" + display + " §arétabli."), true);
+        src.sendFeedback(() -> DinarLang.text("§aSolde de §e%s §arétabli.", display), true);
         return 1;
     }
 
     private static int resetAll(CommandContext<ServerCommandSource> ctx) {
         DinarMod.economy.resetAll();
-        ctx.getSource().sendFeedback(() -> Text.literal("§aTous les soldes ont été réinitialisés."), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aTous les soldes ont été réinitialisés."), true);
         return 1;
     }
 
@@ -142,7 +145,7 @@ public final class EcoCommand {
         ServerCommandSource src = ctx.getSource();
         ServerPlayerEntity player = src.getPlayer();
         if (player == null) {
-            src.sendError(Text.literal("§cCette commande doit être exécutée par un joueur."));
+            src.sendError(DinarLang.text("§cCette commande doit être exécutée par un joueur."));
             return 0;
         }
         AdminPanelScreenHandler.open(player);
@@ -151,19 +154,19 @@ public final class EcoCommand {
 
     private static int reload(CommandContext<ServerCommandSource> ctx) {
         DinarMod.config = DinarConfig.load();
-        ctx.getSource().sendFeedback(() -> Text.literal("§aConfig Dinar rechargée."), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aConfig Dinar rechargée."), true);
         return 1;
     }
 
     private static int save(CommandContext<ServerCommandSource> ctx) {
         DinarMod.economy.save();
-        ctx.getSource().sendFeedback(() -> Text.literal("§aDonnées Dinar sauvegardées."), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aDonnées Dinar sauvegardées."), true);
         return 1;
     }
 
     private static int treasuryShow(CommandContext<ServerCommandSource> ctx) {
         double treasury = DinarMod.economy.getTreasury();
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lTrésorerie §r§7» §e" + DinarMod.economy.money(treasury)), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lTrésorerie §r§7» §e%s", DinarMod.economy.money(treasury)), true);
         return 1;
     }
 
@@ -171,8 +174,8 @@ public final class EcoCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
         DinarMod.economy.addTreasury(amount);
         double treasury = DinarMod.economy.getTreasury();
-        ctx.getSource().sendFeedback(() -> Text.literal("§aTrésorerie augmentée de §e" + DinarMod.economy.money(amount)
-                + " §f→ §e" + DinarMod.economy.money(treasury)), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aTrésorerie augmentée de §e%s §f→ §e%s",
+                DinarMod.economy.money(amount), DinarMod.economy.money(treasury)), true);
         return 1;
     }
 
@@ -180,8 +183,8 @@ public final class EcoCommand {
         double amount = DoubleArgumentType.getDouble(ctx, "montant");
         DinarMod.economy.takeTreasury(amount);
         double treasury = DinarMod.economy.getTreasury();
-        ctx.getSource().sendFeedback(() -> Text.literal("§cTrésorerie réduite de §e" + DinarMod.economy.money(amount)
-                + " §f→ §e" + DinarMod.economy.money(treasury)), true);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§cTrésorerie réduite de §e%s §f→ §e%s",
+                DinarMod.economy.money(amount), DinarMod.economy.money(treasury)), true);
         return 1;
     }
 
@@ -190,16 +193,16 @@ public final class EcoCommand {
         String name = StringArgumentType.getString(ctx, "joueur");
         PlayerRef ref = DinarMod.economy.resolve(src, name);
         if (ref == null) {
-            src.sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            src.sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         Account acc = DinarMod.economy.account(ref.uuid());
         if (acc == null || acc.history.isEmpty()) {
-            src.sendFeedback(() -> Text.literal("§7Aucune transaction pour §e" + ref.displayName() + "§7."), false);
+            src.sendFeedback(() -> DinarLang.text("§7Aucune transaction pour §e%s§7.", ref.displayName()), false);
             return 0;
         }
         String display = ref.displayName();
-        src.sendFeedback(() -> Text.literal("§6§l=== Historique de §e" + display + " §6==="), false);
+        src.sendFeedback(() -> DinarLang.text("§6§l=== Historique de §e%s §6===", display), false);
         for (TransactionEntry t : acc.history) {
             String line = switch (t.type()) {
                 case "SEND" -> "§c→ §e" + DinarMod.economy.money(t.amount()) + " §7vers " + t.otherName();

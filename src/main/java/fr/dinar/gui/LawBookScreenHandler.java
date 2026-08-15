@@ -2,6 +2,7 @@ package fr.dinar.gui;
 
 import fr.dinar.DinarMod;
 import fr.dinar.government.Law;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
 import net.minecraft.entity.player.PlayerEntity;
@@ -43,7 +44,7 @@ public class LawBookScreenHandler extends GenericContainerScreenHandler {
     public static void open(ServerPlayerEntity player) {
         player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
                 (syncId, inv, p) -> new LawBookScreenHandler(syncId, inv, player),
-                Text.literal("§6Livre des Lois").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
+                Text.literal(DinarLang.t("§6Livre des Lois")).setStyle(Style.EMPTY.withColor(Formatting.GOLD).withItalic(false))));
     }
 
     private void build() {
@@ -52,16 +53,16 @@ public class LawBookScreenHandler extends GenericContainerScreenHandler {
         List<Law> adopted = DinarMod.government.getAdoptedLaws();
         int totalPages = Math.max(1, (int) Math.ceil(adopted.size() / (double) LAWS_PER_PAGE));
 
-        panelInv.setStack(0, named(Items.BARRIER, "§cFermer"));
+        panelInv.setStack(0, named(Items.BARRIER, DinarLang.t("§cFermer")));
 
-        ItemStack header = named(Items.ENCHANTED_BOOK, "§6§lLivre des Lois");
+        ItemStack header = named(Items.ENCHANTED_BOOK, DinarLang.t("§6§lLivre des Lois"));
         header.set(DataComponentTypes.LORE, new LoreComponent(List.of(
-                Text.literal("§7Lois adoptées : §e" + adopted.size()),
-                Text.literal("§7Page §e" + (page + 1) + "/" + totalPages))));
+                Text.literal(DinarLang.t("§7Lois adoptées : §e%s", adopted.size())),
+                Text.literal(DinarLang.t("§7Page §e%s/%s", page + 1, totalPages)))));
         panelInv.setStack(4, header);
 
-        panelInv.setStack(36, named(Items.ARROW, "§ePage précédente"));
-        panelInv.setStack(44, named(Items.ARROW, "§ePage suivante"));
+        panelInv.setStack(36, named(Items.ARROW, DinarLang.t("§ePage précédente")));
+        panelInv.setStack(44, named(Items.ARROW, DinarLang.t("§ePage suivante")));
 
         int start = page * LAWS_PER_PAGE;
         int end = Math.min(start + LAWS_PER_PAGE, adopted.size());
@@ -72,8 +73,8 @@ public class LawBookScreenHandler extends GenericContainerScreenHandler {
                     .setStyle(Style.EMPTY.withItalic(false)));
             book.set(DataComponentTypes.LORE, new LoreComponent(List.of(
                     Text.literal("§7" + law.content),
-                    Text.literal("§7Auteur : §e" + law.authorName),
-                    Text.literal("§aVotes : §e" + law.yesVotes + " OUI §7/ §c" + law.noVotes + " NON"))));
+                    Text.literal(DinarLang.t("§7Auteur : §e%s", law.authorName)),
+                    Text.literal(DinarLang.t("§aVotes : §e%s OUI §7/ §c%s NON", law.yesVotes, law.noVotes)))));
             panelInv.setStack(LAWS_START + (i - start), book);
         }
     }

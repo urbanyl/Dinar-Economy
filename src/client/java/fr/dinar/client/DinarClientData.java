@@ -9,6 +9,7 @@ public final class DinarClientData {
     private static double companyBalance = 0;
     private static boolean hasCompany = false;
     private static String currencySymbol = "D";
+    private static String lang = "fr";
     private static boolean initialized = false;
 
     private static final List<MoneyGainEvent> GAINS = new ArrayList<>();
@@ -21,10 +22,11 @@ public final class DinarClientData {
     public static double getCompanyBalance() { return companyBalance; }
     public static boolean getHasCompany() { return hasCompany; }
     public static String getCurrencySymbol() { return currencySymbol; }
+    public static String getLang() { return lang; }
     public static boolean isInitialized() { return initialized; }
     public static List<MoneyGainEvent> getMoneyGains() { return GAINS; }
 
-    public static void update(double wallet, double bank, double company, boolean hasCompanyFlag, String symbol) {
+    public static void update(double wallet, double bank, double company, boolean hasCompanyFlag, String symbol, String language) {
         double oldWallet = walletBalance;
         double oldBank = bankBalance;
         walletBalance = wallet;
@@ -32,9 +34,10 @@ public final class DinarClientData {
         companyBalance = company;
         hasCompany = hasCompanyFlag;
         if (symbol != null) currencySymbol = symbol;
+        if (language != null) lang = language;
         if (initialized) {
-            if (wallet > oldWallet) addGain(wallet - oldWallet, "Argent");
-            if (bank > oldBank) addGain(bank - oldBank, "Banque");
+            if (wallet > oldWallet) addGain(wallet - oldWallet, "wallet");
+            if (bank > oldBank) addGain(bank - oldBank, "bank");
         } else {
             initialized = true;
         }

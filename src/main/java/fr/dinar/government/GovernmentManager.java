@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -54,9 +55,9 @@ public class GovernmentManager {
     public void setLeader(UUID uuid, String name) {
         this.leaderUuid = uuid;
         this.leaderName = name;
-        broadcast("§6§lCaliphat §r§7» §e" + name + " §7a été nommé §6Calife §7du serveur.");
-        showTitle("§6§lNouveau Calife", "§e" + name, 10, 40, 10);
-        DinarMod.rpLog.log("GOUVERNEMENT", name + " a été nommé Calife du serveur");
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §e%s §7a été nommé §6Calife §7du serveur.", name));
+        showTitle(DinarLang.t("§6§lNouveau Calife"), "§e" + name, 10, 40, 10);
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("%s a été nommé Calife du serveur", name));
     }
 
     public void removeLeader() {
@@ -64,8 +65,8 @@ public class GovernmentManager {
         String old = leaderName;
         leaderUuid = null;
         leaderName = null;
-        broadcast("§6§lCaliphat §r§7» §c" + old + " §7n'est plus Calife.");
-        DinarMod.rpLog.log("GOUVERNEMENT", old + " n'est plus Calife");
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §c%s §7n'est plus Calife.", old));
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("%s n'est plus Calife", old));
     }
 
     public boolean isLeader(UUID uuid) {
@@ -79,9 +80,10 @@ public class GovernmentManager {
     public Law proposeLaw(ServerPlayerEntity author, String title, String content) {
         Law law = new Law(nextLawId++, title, content, author.getUuid(), author.getGameProfile().getName());
         laws.add(law);
-        broadcast("§6§lCaliphat §r§7» §e" + author.getGameProfile().getName() + " §apropose une loi §e» §f" + title);
-        DinarMod.rpLog.log("GOUVERNEMENT", author.getGameProfile().getName() + " propose la loi «"
-                + title + "» : " + content);
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §e%s §apropose une loi §e» §f%s",
+                author.getGameProfile().getName(), title));
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("%s propose la loi «%s» : %s",
+                author.getGameProfile().getName(), title, content));
         return law;
     }
 
@@ -90,11 +92,13 @@ public class GovernmentManager {
         law.status = "ADOPTED";
         law.decidedAt = System.currentTimeMillis();
         laws.add(law);
-        broadcast("§6§lCaliphat §r§7» §e" + author.getGameProfile().getName() + " §apromulgue la loi §e» §f" + title);
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §e%s §apromulgue la loi §e» §f%s",
+                author.getGameProfile().getName(), title));
         if (titleEnabled) {
-            showTitle("§6§lLoi Promulguée", "§f" + title, 10, 60, 10);
+            showTitle(DinarLang.t("§6§lLoi Promulguée"), "§f" + title, 10, 60, 10);
         }
-        DinarMod.rpLog.log("GOUVERNEMENT", author.getGameProfile().getName() + " promulgue la loi «" + title + "»");
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("%s promulgue la loi «%s»",
+                author.getGameProfile().getName(), title));
         return law;
     }
 
@@ -119,8 +123,8 @@ public class GovernmentManager {
         if (law == null) return;
         law.status = "REJECTED";
         law.decidedAt = System.currentTimeMillis();
-        broadcast("§6§lCaliphat §r§7» §cLa loi §e» §f" + law.title + " §ca été rejetée.");
-        DinarMod.rpLog.log("GOUVERNEMENT", "La loi «" + law.title + "» a été rejetée");
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §cLa loi §e» §f%s §ca été rejetée.", law.title));
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("La loi «%s» a été rejetée", law.title));
     }
 
     // ------------------------------------------------------------------
@@ -133,8 +137,8 @@ public class GovernmentManager {
         if (activeVotes.containsKey(lawId)) return false;
         VoteSession vs = new VoteSession(lawId, System.currentTimeMillis(), voteDurationSeconds, requiredVotes);
         activeVotes.put(lawId, vs);
-        broadcast("§6§lCaliphat §r§7» §eVote ouvert §7pour la loi §f» " + law.title + " §7(/loi voter)");
-        DinarMod.rpLog.log("GOUVERNEMENT", "Vote ouvert pour la loi «" + law.title + "»");
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §eVote ouvert §7pour la loi §f» %s §7(/loi voter)", law.title));
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("Vote ouvert pour la loi «%s»", law.title));
         return true;
     }
 
@@ -165,8 +169,8 @@ public class GovernmentManager {
         vs.vote(uuid, yes);
         Law law = getLaw(lawId);
         String voterName = resolveName(uuid);
-        broadcast("§6§lCaliphat §r§7» §e" + voterName + " §avote " + (yes ? "§aOUI" : "§cNON")
-                + " §7pour §f» " + (law != null ? law.title : "#" + lawId));
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §e%s §avote %s §7pour §f» %s",
+                voterName, yes ? "§aOUI" : "§cNON", law != null ? law.title : "#" + lawId));
         if (vs.getTotal() >= vs.getRequiredVotes()) {
             resolveVote(vs);
             activeVotes.remove(lawId);
@@ -186,23 +190,23 @@ public class GovernmentManager {
         if (vs.isPassed()) {
             law.status = "ADOPTED";
             law.decidedAt = System.currentTimeMillis();
-            broadcast("§6§lCaliphat §r§7» §aLa loi §e» §f" + law.title + " §aest §6ADOPTÉE §7("
-                    + vs.getYes() + " OUI, " + vs.getNo() + " NON)");
+            broadcast(DinarLang.t("§6§lCaliphat §r§7» §aLa loi §e» §f%s §aest §6ADOPTÉE §7(%s OUI, %s NON)",
+                    law.title, vs.getYes(), vs.getNo()));
             if (titleEnabled) {
-                showTitle("§6§lLoi Adoptée", "§f" + law.title, 10, 60, 10);
+                showTitle(DinarLang.t("§6§lLoi Adoptée"), "§f" + law.title, 10, 60, 10);
             }
-            DinarMod.rpLog.log("GOUVERNEMENT", "La loi «" + law.title + "» a été adoptée ("
-                    + vs.getYes() + " OUI / " + vs.getNo() + " NON)");
+            DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("La loi «%s» a été adoptée (%s OUI / %s NON)",
+                    law.title, vs.getYes(), vs.getNo()));
         } else {
             law.status = "REJECTED";
             law.decidedAt = System.currentTimeMillis();
-            broadcast("§6§lCaliphat §r§7» §cLa loi §e» §f" + law.title + " §cest §cREJETÉE §7("
-                    + vs.getYes() + " OUI, " + vs.getNo() + " NON)");
+            broadcast(DinarLang.t("§6§lCaliphat §r§7» §cLa loi §e» §f%s §cest §cREJETÉE §7(%s OUI, %s NON)",
+                    law.title, vs.getYes(), vs.getNo()));
             if (titleEnabled) {
-                showTitle("§c§lLoi Rejetée", "§f" + law.title, 10, 40, 10);
+                showTitle(DinarLang.t("§c§lLoi Rejetée"), "§f" + law.title, 10, 40, 10);
             }
-            DinarMod.rpLog.log("GOUVERNEMENT", "La loi «" + law.title + "» a été rejetée ("
-                    + vs.getYes() + " OUI / " + vs.getNo() + " NON)");
+            DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("La loi «%s» a été rejetée (%s OUI / %s NON)",
+                    law.title, vs.getYes(), vs.getNo()));
         }
     }
 
@@ -212,11 +216,13 @@ public class GovernmentManager {
 
     public void setDecree(ServerPlayerEntity author, String text) {
         this.decree = text;
-        broadcast("§6§lCaliphat §r§7» §e" + author.getGameProfile().getName() + " §apublie un décret §7» §f" + text);
+        broadcast(DinarLang.t("§6§lCaliphat §r§7» §e%s §apublie un décret §7» §f%s",
+                author.getGameProfile().getName(), text));
         if (titleEnabled) {
-            showTitle("§6§lDécret du Calife", "§f" + text, 10, 60, 10);
+            showTitle(DinarLang.t("§6§lDécret du Calife"), "§f" + text, 10, 60, 10);
         }
-        DinarMod.rpLog.log("GOUVERNEMENT", author.getGameProfile().getName() + " publie le décret «" + text + "»");
+        DinarMod.rpLog.log("GOUVERNEMENT", DinarLang.t("%s publie le décret «%s»",
+                author.getGameProfile().getName(), text));
     }
 
     public String getDecree() {

@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fr.dinar.DinarMod;
+import fr.dinar.lang.DinarLang;
 import fr.dinar.logs.DiscordWebhook;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -69,8 +70,8 @@ public class PrisonManager {
     }
 
     public String imprison(UUID uuid, String name, long minutes, String officerName) {
-        if (minutes <= 0) return "§cLa durée doit être positive.";
-        if (!hasLocation()) return "§cLa position de la prison n'est pas définie (§f/prison setpos§c).";
+        if (minutes <= 0) return DinarLang.t("§cLa durée doit être positive.");
+        if (!hasLocation()) return DinarLang.t("§cLa position de la prison n'est pas définie (§f/prison setpos§c).");
         PrisonSession s = new PrisonSession();
         s.name = name;
         s.releaseAt = System.currentTimeMillis() + minutes * 60000L;
@@ -79,25 +80,25 @@ public class PrisonManager {
         ServerPlayerEntity target = DinarMod.economy.online(uuid);
         if (target != null) {
             teleportToPrison(target);
-            target.sendMessage(Text.literal("§c§lARRESTATION §r§7» §fVous avez été incarcéré pour §e"
-                    + minutes + " min§f."), false);
+            target.sendMessage(DinarLang.text("§c§lARRESTATION §r§7» §fVous avez été incarcéré pour §e%s min§f.",
+                    minutes), false);
         }
 
-        DinarMod.rpLog.log("PRISON", officerName + " a incarcéré " + name + " pour " + minutes + " minutes");
+        DinarMod.rpLog.log("PRISON", DinarLang.t("%s a incarcéré %s pour %s minutes", officerName, name, minutes));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("🚨 Arrestation")
-                .field("Suspect", name)
-                .field("Durée", minutes + " minute(s)")
-                .field("Officier", officerName)
+                .title(DinarLang.t("🚨 Arrestation"))
+                .field(DinarLang.t("Suspect"), name)
+                .field(DinarLang.t("Durée"), DinarLang.t("%s minute(s)", minutes))
+                .field(DinarLang.t("Officier"), officerName)
                 .color(0xE74C3C)
                 .footer("Dinar RP"));
-        DinarMod.government.broadcast("§c§lARRESTATION §r§7» §e" + name
-                + " §fa été incarcéré pour §e" + minutes + " minutes§f.");
+        DinarMod.government.broadcast(DinarLang.t("§c§lARRESTATION §r§7» §e%s §fa été incarcéré pour §e%s minutes§f.",
+                name, minutes));
         return null;
     }
 
     public String release(UUID uuid, String officerName) {
-        if (!sessions.containsKey(uuid)) return "§cCe joueur n'est pas en prison.";
+        if (!sessions.containsKey(uuid)) return DinarLang.t("§cCe joueur n'est pas en prison.");
         releaseNow(uuid, false);
         return null;
     }
@@ -133,8 +134,8 @@ public class PrisonManager {
             }
             if (server.getTicks() % 20 == 0) {
                 long rem = remainingSeconds(e.getKey());
-                p.sendMessage(Text.literal("§8[§cPrison§8] §fIl vous reste §e"
-                        + (rem / 60) + "m " + (rem % 60) + "s"), true);
+                p.sendMessage(DinarLang.text("§8[§cPrison§8] §fIl vous reste §e%sm %ss",
+                        rem / 60, rem % 60), true);
             }
         }
         for (UUID u : toRelease) {
@@ -168,16 +169,16 @@ public class PrisonManager {
             ServerWorld world = server.getOverworld();
             var pos = world.getSpawnPos().toCenterPos();
             p.teleport(world, pos.getX(), pos.getY(), pos.getZ(), p.getYaw(), p.getPitch());
-            p.sendMessage(Text.literal("§a§lLIBÉRÉ §r§7» §fVous êtes libéré."), false);
+            p.sendMessage(DinarLang.text("§a§lLIBÉRÉ §r§7» §fVous êtes libéré."), false);
         }
-        DinarMod.rpLog.log("PRISON", s.name + (expired ? " a purgé sa peine" : " a été libéré"));
+        DinarMod.rpLog.log("PRISON", s.name + (expired ? DinarLang.t(" a purgé sa peine") : DinarLang.t(" a été libéré")));
         DinarMod.rpLog.sendEmbed(new DiscordWebhook.DiscordEmbed()
-                .title("✅ Libération")
-                .field("Détenu", s.name)
-                .description(expired ? "A purgé sa peine." : "Libéré.")
+                .title(DinarLang.t("✅ Libération"))
+                .field(DinarLang.t("Détenu"), s.name)
+                .description(expired ? DinarLang.t("A purgé sa peine.") : DinarLang.t("Libéré."))
                 .color(0x27AE60)
                 .footer("Dinar RP"));
-        DinarMod.government.broadcast("§a§lLIBÉRATION §r§7» §e" + s.name + " §fa été libéré.");
+        DinarMod.government.broadcast(DinarLang.t("§a§lLIBÉRATION §r§7» §e%s §fa été libéré.", s.name));
     }
 
     public void save() {

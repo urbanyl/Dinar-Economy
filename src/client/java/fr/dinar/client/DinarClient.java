@@ -22,11 +22,12 @@ public class DinarClient implements ClientModInitializer {
                 double company = payload.data().getDouble("company");
                 boolean hasCompany = payload.data().getBoolean("hasCompany");
                 String symbol = payload.data().contains("symbol") ? payload.data().getString("symbol") : "D";
+                String lang = payload.data().contains("lang") ? payload.data().getString("lang") : "fr";
                 context.client().execute(() -> {
                     boolean wasInitialized = DinarClientData.isInitialized();
                     double oldWallet = DinarClientData.getWalletBalance();
                     double oldBank = DinarClientData.getBankBalance();
-                    DinarClientData.update(wallet, bank, company, hasCompany, symbol);
+                    DinarClientData.update(wallet, bank, company, hasCompany, symbol, lang);
                     if (wasInitialized) {
                         ClientPlayerEntity player = context.client().player;
                         if (player != null) {

@@ -7,6 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import fr.dinar.DinarMod;
 import fr.dinar.economy.PlayerRef;
 import fr.dinar.justice.PrisonManager;
+import fr.dinar.lang.DinarLang;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -51,29 +52,29 @@ public final class PrisonCommand {
     private static int setPos(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         DinarMod.prison.setLocation(officer);
         DinarMod.rpLog.log("PRISON", officer.getName().getString() + " a défini la position de la prison.");
-        ctx.getSource().sendFeedback(() -> Text.literal("§aPosition de la prison définie."), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§aPosition de la prison définie."), false);
         return 1;
     }
 
     private static int imprison(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         String name = StringArgumentType.getString(ctx, "joueur");
         PlayerRef ref = DinarMod.economy.resolve(ctx.getSource(), name);
         if (ref == null) {
-            ctx.getSource().sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            ctx.getSource().sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         if (DinarMod.prison.isImprisoned(ref.uuid())) {
-            ctx.getSource().sendError(Text.literal("§c" + ref.displayName() + " est déjà en prison."));
+            ctx.getSource().sendError(DinarLang.text("§c%s est déjà en prison.", ref.displayName()));
             return 0;
         }
         int minutes = IntegerArgumentType.getInteger(ctx, "minutes");
@@ -83,21 +84,21 @@ public final class PrisonCommand {
             ctx.getSource().sendError(Text.literal(err));
             return 0;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§a" + ref.displayName() + " incarcéré pour §e"
-                + minutes + " min§a."), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§a%s incarcéré pour §e%s min§a.",
+                ref.displayName(), minutes), false);
         return 1;
     }
 
     private static int release(CommandContext<ServerCommandSource> ctx) {
         ServerPlayerEntity officer = ctx.getSource().getPlayer();
         if (officer == null) {
-            ctx.getSource().sendError(Text.literal("§cRéservé aux joueurs."));
+            ctx.getSource().sendError(DinarLang.text("§cRéservé aux joueurs."));
             return 0;
         }
         String name = StringArgumentType.getString(ctx, "joueur");
         PlayerRef ref = DinarMod.economy.resolve(ctx.getSource(), name);
         if (ref == null) {
-            ctx.getSource().sendError(Text.literal("§cJoueur introuvable : §e" + name));
+            ctx.getSource().sendError(DinarLang.text("§cJoueur introuvable : §e%s", name));
             return 0;
         }
         String err = DinarMod.prison.release(ref.uuid(), officer.getName().getString());
@@ -105,28 +106,28 @@ public final class PrisonCommand {
             ctx.getSource().sendError(Text.literal(err));
             return 0;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§a" + ref.displayName() + " libéré."), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§a%s libéré.", ref.displayName()), false);
         return 1;
     }
 
     private static int info(CommandContext<ServerCommandSource> ctx) {
         Map<UUID, PrisonManager.PrisonSession> sessions = DinarMod.prison.getSessions();
         if (sessions.isEmpty()) {
-            ctx.getSource().sendFeedback(() -> Text.literal("§7La prison est vide."), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§7La prison est vide."), false);
             return 0;
         }
-        ctx.getSource().sendFeedback(() -> Text.literal("§8[§cPrison§8] §fDétenus §7(§f" + sessions.size() + "§7)"), false);
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§8[§cPrison§8] §fDétenus §7(§f%s§7)", sessions.size()), false);
         for (Map.Entry<UUID, PrisonManager.PrisonSession> e : sessions.entrySet()) {
             long rem = DinarMod.prison.remainingSeconds(e.getKey());
             String name = e.getValue().name;
-            ctx.getSource().sendFeedback(() -> Text.literal("§f• §e" + name + " §7— reste §e"
-                    + (rem / 60) + "m " + (rem % 60) + "s"), false);
+            ctx.getSource().sendFeedback(() -> DinarLang.text("§f• §e%s §7— reste §e%sm %ss",
+                    name, rem / 60, rem % 60), false);
         }
         return 1;
     }
 
     private static int help(CommandContext<ServerCommandSource> ctx) {
-        ctx.getSource().sendFeedback(() -> Text.literal("§6§lPrison §7» §f/prison setpos "
+        ctx.getSource().sendFeedback(() -> DinarLang.text("§6§lPrison §7» §f/prison setpos "
                 + "§7| §f/prison incarcere <joueur> <minutes> §7| §f/prison libere <joueur> "
                 + "§7| §f/prison info §7| §f/mandatdarret <joueur> <motif>"), false);
         return 1;
